@@ -15,7 +15,10 @@ from .service import (
     delete_product
 )
 
-from .schema import ProductCreateRequest
+from .schema import (
+    ProductCreateRequest,
+    ProductUpdateRequest
+)
 
 router = APIRouter()
 
@@ -49,7 +52,7 @@ def add_product(
 @router.put("/{product_id}")
 def update_existing_product(
     product_id: int,
-    request: ProductCreateRequest,
+    request: ProductUpdateRequest,
     db: Session = Depends(get_db)
 ):
     return update_product(
