@@ -5,7 +5,7 @@ from .model import StockTransfer
 from app.inventories.model import Inventory
 
 
-def find_inventory(db: Session, product_id: int, warehouse_id: int):
+def find_by_product_and_warehouse(db: Session, product_id: int, warehouse_id: int):
     return (
         db.query(Inventory)
         .filter(

@@ -1,6 +1,6 @@
 from sqlalchemy import Integer, ForeignKey, DateTime
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from datetime import datetime, timezone
 
@@ -24,3 +24,5 @@ class StockTransfer(Base):
     transferred_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
+
+    product = relationship("Product")

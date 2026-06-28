@@ -4,21 +4,21 @@ from .model import StockTransfer
 
 from .schema import StockTransferRequest, StockTransferResponse
 
-from .repository import find_inventory, save_transfer
+from .repository import find_by_product_and_warehouse, save_transfer
 
 
 def transfer_stock(db: Session, request: StockTransferRequest):
     if request.source_warehouse_id == request.destination_warehouse_id:
         return {"message": "Source and destination cannot be same"}
 
-    source_inventory = find_inventory(
+    source_inventory = find_by_product_and_warehouse(
         db, request.product_id, request.source_warehouse_id
     )
 
     if not source_inventory:
         return {"message": "Source inventory not found"}
 
-    destination_inventory = find_inventory(
+    destination_inventory = find_by_product_and_warehouse(
         db, request.product_id, request.destination_warehouse_id
     )
 
