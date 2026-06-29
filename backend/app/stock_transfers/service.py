@@ -4,7 +4,9 @@ from .model import StockTransfer
 
 from .schema import StockTransferRequest, StockTransferResponse
 
-from .repository import find_by_product_and_warehouse, save_transfer
+from app.inventories.repository import find_by_product_and_warehouse
+
+from .repository import save_transfer
 
 
 def transfer_stock(db: Session, request: StockTransferRequest):

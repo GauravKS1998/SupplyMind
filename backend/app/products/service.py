@@ -1,5 +1,7 @@
 from sqlalchemy.orm import Session
 
+from .model import Product
+
 from .schema import ProductResponse, ProductCreateRequest, ProductUpdateRequest
 
 from .repository import find_all, find_by_id, save, delete
@@ -24,7 +26,7 @@ def get_product_by_id(db: Session, product_id: int):
 
 
 def create_product(db: Session, request: ProductCreateRequest):
-    product = product(name=request.name, price=request.price)
+    product = Product(name=request.name, price=request.price)
 
     saved_product = save(db, product)
 

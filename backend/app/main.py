@@ -7,12 +7,14 @@ from app.warehouses.model import Warehouse
 from app.inventories.model import Inventory
 from app.stock_transfers.model import StockTransfer
 from app.suppliers.model import Supplier
+from app.purchase_orders.model import PurchaseOrder
 
 from app.products.router import router as product_router
 from app.warehouses.router import router as warehouse_router
 from app.inventories.router import router as inventory_router
 from app.stock_transfers.router import router as stock_transfer_router
 from app.suppliers.router import router as supplier_router
+from app.purchase_orders.router import router as purchase_order_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -29,3 +31,7 @@ app.include_router(
 )
 
 app.include_router(supplier_router, prefix="/suppliers", tags=["Suppliers"])
+
+app.include_router(
+    purchase_order_router, prefix="/purchase-orders", tags=["Purchase Orders"]
+)
