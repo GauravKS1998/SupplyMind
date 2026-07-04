@@ -4,6 +4,7 @@ from app.database.database import Base, engine
 
 from app.categories.model import Category
 from app.subcategories.model import SubCategory
+from app.product_types.model import ProductType
 from app.products.model import Product
 from app.warehouses.model import Warehouse
 from app.inventories.model import Inventory
@@ -13,6 +14,7 @@ from app.purchase_orders.model import PurchaseOrder
 
 from app.categories.router import router as category_router
 from app.subcategories.router import router as subcategory_router
+from app.product_types.router import router as product_type_router
 from app.products.router import router as product_router
 from app.warehouses.router import router as warehouse_router
 from app.inventories.router import router as inventory_router
@@ -28,6 +30,8 @@ app = FastAPI()
 app.include_router(category_router, prefix="/categories", tags=["Categories"])
 
 app.include_router(subcategory_router, prefix="/subcategories", tags=["SubCategories"])
+
+app.include_router(product_type_router, prefix="/product-types", tags=["Product Types"])
 
 app.include_router(product_router, prefix="/products", tags=["Products"])
 
