@@ -19,6 +19,11 @@ class InventoryResponse(BaseModel):
     id: int
     product_id: int
     product_name: str
+    product_sku: str
+    supplier_name: str
+    category_name: str
+    subcategory_name: str
+    product_type_name: str
     warehouse_id: int
     warehouse_name: str
     quantity: int

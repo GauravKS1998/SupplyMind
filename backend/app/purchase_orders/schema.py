@@ -12,8 +12,12 @@ class PurchaseOrderCreateRequest(BaseModel):
 class PurchaseOrderResponse(BaseModel):
     id: int
     supplier_id: int
+    supplier_name: str
     product_id: int
+    product_name: str
+    product_sku: str
     warehouse_id: int
+    warehouse_name: str
     quantity: int
     status: str
     ordered_at: datetime

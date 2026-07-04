@@ -23,8 +23,12 @@ def map_purchase_order(purchase_order: PurchaseOrder):
     return PurchaseOrderResponse(
         id=purchase_order.id,
         supplier_id=purchase_order.supplier_id,
+        supplier_name=purchase_order.supplier.name,
         product_id=purchase_order.product_id,
+        product_name=purchase_order.product.name,
+        product_sku=purchase_order.product.sku,
         warehouse_id=purchase_order.warehouse_id,
+        warehouse_name=purchase_order.warehouse.name,
         quantity=purchase_order.quantity,
         status=purchase_order.status,
         ordered_at=purchase_order.ordered_at,
