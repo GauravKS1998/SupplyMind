@@ -1,27 +1,110 @@
-# Python
+# ==================================================
+# SUPPLYMIND MASTER GITIGNORE
+# ==================================================
+
+# ==================================================
+# PYTHON / BACKEND
+# ==================================================
+
+# Virtual Environment
 backend/venv/
+venv/
+
+# Python cache
 **/__pycache__/
 *.pyc
-
-# Environment variables
-.env
-
-# IDE
-.vscode/
-.idea/
-
-# Logs
-*.log
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Node
-frontend/node_modules/
-frontend/dist/
+*.pyo
+*.pyd
 
 # Python build files
 *.egg-info/
-dist/
 build/
+dist/
+
+# Testing / linting cache
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Alembic cache
+backend/alembic/versions/__pycache__/
+
+# Environment variables
+backend/.env
+.env
+
+# SQLite (if ever used)
+*.sqlite3
+
+# ==================================================
+# NODE / FRONTEND
+# ==================================================
+
+# Dependencies
+frontend/node_modules/
+node_modules/
+
+# Production builds
+frontend/dist/
+dist/
+
+# Package manager logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Vite cache
+.vite/
+
+# ==================================================
+# IDE / EDITOR
+# ==================================================
+
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ==================================================
+# OPERATING SYSTEM FILES
+# ==================================================
+
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ==================================================
+# LOGS / TEMP FILES
+# ==================================================
+
+*.log
+*.tmp
+*.cache
+
+# ==================================================
+# SECRETS / CERTIFICATES
+# ==================================================
+
+*.pem
+*.key
+*.crt
+
+# ==================================================
+# AWS / DEPLOYMENT
+# ==================================================
+
+terraform.tfstate
+terraform.tfstate.backup
+.terraform/
+
+# Docker (future)
+docker-compose.override.yml
+
+# ==================================================
+# MISC
+# ==================================================
+
+coverage/
+reports/
