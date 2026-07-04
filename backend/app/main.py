@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 
+from fastapi.middleware.cors import CORSMiddleware
+
 from app.database.database import Base, engine
 
 from app.categories.model import Category
@@ -29,6 +31,14 @@ from app.sales_orders.router import router as sales_order_router
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(dashboard_router, prefix="/dashboard", tags=["Dashboard"])
 
