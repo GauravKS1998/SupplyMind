@@ -13,6 +13,7 @@ from app.suppliers.model import Supplier
 from app.purchase_orders.model import PurchaseOrder
 from app.sales_orders.model import SalesOrder
 
+from app.dashboard.router import router as dashboard_router
 from app.categories.router import router as category_router
 from app.subcategories.router import router as subcategory_router
 from app.product_types.router import router as product_type_router
@@ -28,6 +29,8 @@ from app.sales_orders.router import router as sales_order_router
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+app.include_router(dashboard_router, prefix="/dashboard", tags=["Dashboard"])
 
 app.include_router(category_router, prefix="/categories", tags=["Categories"])
 
