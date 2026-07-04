@@ -11,6 +11,7 @@ from app.inventories.model import Inventory
 from app.stock_transfers.model import StockTransfer
 from app.suppliers.model import Supplier
 from app.purchase_orders.model import PurchaseOrder
+from app.sales_orders.model import SalesOrder
 
 from app.categories.router import router as category_router
 from app.subcategories.router import router as subcategory_router
@@ -22,6 +23,7 @@ from app.stock_transfers.router import router as stock_transfer_router
 from app.suppliers.router import router as supplier_router
 from app.purchase_orders.router import router as purchase_order_router
 from app.forecasting.router import router as forecasting_router
+from app.sales_orders.router import router as sales_order_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -50,3 +52,5 @@ app.include_router(
 )
 
 app.include_router(forecasting_router, prefix="/forecasting", tags=["Forecasting"])
+
+app.include_router(sales_order_router, prefix="/sales-orders", tags=["Sales Orders"])
