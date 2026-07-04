@@ -6,13 +6,35 @@ from .schema import ProductResponse, ProductCreateRequest, ProductUpdateRequest
 
 from .repository import find_all, find_by_id, save, delete
 
+from app.suppliers.repository import find_by_id as find_supplier_by_id
+from app.categories.repository import find_by_id as find_category_by_id
+from app.subcategories.repository import find_by_id as find_subcategory_by_id
+from app.product_types.repository import find_by_id as find_product_type_by_id
+
+
+def map_product(product: Product):
+    return ProductResponse(
+        id=product.id,
+        name=product.name,
+        sku=product.sku,
+        supplier_id=product.supplier_id,
+        supplier_name=product.supplier.name,
+        category_id=product.category_id,
+        category_name=product.category.name,
+        subcategory_id=product.subcategory_id,
+        subcategory_name=product.subcategory.name,
+        product_type_id=product.product_type_id,
+        product_type_name=product.product_type.name,
+        price=product.price,
+        created_at=product.created_at,
+    )
+
 
 def get_all_products(db: Session):
     products = find_all(db)
 
     return [
-        ProductResponse(id=product.id, name=product.name, price=product.price)
-        for product in products
+        map_product(product) for product in products
     ]  # Equivelent to products.stream().map(...).toList();
 
 
@@ -22,17 +44,43 @@ def get_product_by_id(db: Session, product_id: int):
     if not product:
         return {"message": "Product not found"}
 
-    return ProductResponse(id=product.id, name=product.name, price=product.price)
+    return map_product(product)
 
 
 def create_product(db: Session, request: ProductCreateRequest):
-    product = Product(name=request.name, price=request.price)
+    supplier = find_supplier_by_id(db, request.supplier_id)
+
+    if not supplier:
+        return {"message": "Supplier not found"}
+
+    category = find_category_by_id(db, request.category_id)
+
+    if not category:
+        return {"message": "Category not found"}
+
+    subcategory = find_subcategory_by_id(db, request.subcategory_id)
+
+    if not subcategory:
+        return {"message": "SubCategory not found"}
+
+    product_type = find_product_type_by_id(db, request.product_type_id)
+
+    if not product_type:
+        return {"message": "ProductType not found"}
+
+    product = Product(
+        name=request.name,
+        sku=request.sku,
+        supplier_id=request.supplier_id,
+        category_id=request.category_id,
+        subcategory_id=request.subcategory_id,
+        product_type_id=request.product_type_id,
+        price=request.price,
+    )
 
     saved_product = save(db, product)
 
-    return ProductResponse(
-        id=saved_product.id, name=saved_product.name, price=saved_product.price
-    )
+    return map_product(saved_product)
 
 
 def update_product(db: Session, product_id: int, request: ProductUpdateRequest):
@@ -42,13 +90,16 @@ def update_product(db: Session, product_id: int, request: ProductUpdateRequest):
         return {"message": "Product not found"}
 
     product.name = request.name  # Similar to product.setName(...);
-    product.price = request.price  # Similar to product.setPrice(...);
+    product.sku = request.sku
+    product.supplier_id = request.supplier_id
+    product.category_id = request.category_id
+    product.subcategory_id = request.subcategory_id
+    product.product_type_id = request.product_type_id
+    product.price = request.price
 
     updated_product = save(db, product)
 
-    return ProductResponse(
-        id=updated_product.id, name=updated_product.name, price=updated_product.price
-    )
+    return map_product(updated_product)
 
 
 def delete_product(db: Session, product_id: int):
