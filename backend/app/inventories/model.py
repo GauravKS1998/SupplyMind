@@ -37,6 +37,8 @@ class Inventory(Base):
 
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
+    created_by: Mapped[int] = mapped_column(ForeignKey("users.id"))
+
     updated_by: Mapped[int | None] = mapped_column(
         ForeignKey("users.id"), nullable=True
     )
@@ -47,6 +49,16 @@ class Inventory(Base):
 
     reactivated_by: Mapped[int | None] = mapped_column(
         ForeignKey("users.id"), nullable=True
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
     )
 
     product = relationship("Product")

@@ -1,5 +1,7 @@
 from sqlalchemy.orm import Session
 
+from datetime import datetime, timezone
+
 from .model import Inventory
 
 from .schema import InventoryCreateRequest, InventoryUpdateRequest, InventoryResponse
@@ -32,6 +34,8 @@ def map_inventory_response(inventory):
         batch_number=inventory.batch_number,
         expiry_date=inventory.expiry_date,
         last_stocked_at=inventory.last_stocked_at,
+        created_by=inventory.created_by,
+        updated_by=inventory.updated_by,
     )
 
 
@@ -50,12 +54,15 @@ def get_inventory_by_id(db: Session, inventory_id: int):
     return map_inventory_response(inventory)
 
 
-def create_inventory(db: Session, request: InventoryCreateRequest):
+def create_inventory(
+    db: Session, request: InventoryCreateRequest, current_user_id: int
+):
     inventory = Inventory(
         product_id=request.product_id,
         warehouse_id=request.warehouse_id,
         quantity=request.quantity,
         reserved_quantity=0,
+        created_by=current_user_id,
         available_quantity=request.quantity,
         reorder_level=request.reorder_level,
         reorder_quantity=request.reorder_quantity,
@@ -68,7 +75,12 @@ def create_inventory(db: Session, request: InventoryCreateRequest):
     return map_inventory_response(saved_inventory)
 
 
-def update_inventory(db: Session, inventory_id: int, request: InventoryUpdateRequest):
+def update_inventory(
+    db: Session,
+    inventory_id: int,
+    request: InventoryUpdateRequest,
+    current_user_id: int,
+):
     inventory = find_by_id(db, inventory_id)
 
     if not inventory:
@@ -84,19 +96,23 @@ def update_inventory(db: Session, inventory_id: int, request: InventoryUpdateReq
     inventory.batch_number = request.batch_number
     inventory.expiry_date = request.expiry_date
 
+    inventory.updated_by = current_user_id
+    inventory.updated_at = datetime.now(timezone.utc)
+
     db.commit()
     db.refresh(inventory)
 
     return map_inventory_response(inventory)
 
 
-def deactivate_inventory(db: Session, inventory_id: int):
+def deactivate_inventory(db: Session, inventory_id: int, current_user_id: int):
     inventory = find_by_id(db, inventory_id)
 
     if not inventory:
         raise InventoryNotFoundException("Inventory not found")
 
     inventory.is_active = False
+    inventory.deactivated_by = current_user_id
 
     db.commit()
     db.refresh(inventory)
@@ -104,13 +120,14 @@ def deactivate_inventory(db: Session, inventory_id: int):
     return {"message": "Inventory deactivated successfully"}
 
 
-def reactivate_inventory(db: Session, inventory_id: int):
+def reactivate_inventory(db: Session, inventory_id: int, current_user_id: int):
     inventory = find_by_id(db, inventory_id)
 
     if not inventory:
         raise InventoryNotFoundException("Inventory not found")
 
     inventory.is_active = True
+    inventory.reactivated_by = current_user_id
 
     db.commit()
     db.refresh(inventory)

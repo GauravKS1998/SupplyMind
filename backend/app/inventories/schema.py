@@ -40,3 +40,5 @@ class InventoryResponse(BaseModel):
     batch_number: str
     expiry_date: date | None
     last_stocked_at: datetime
+    created_by: int
+    updated_by: int | None

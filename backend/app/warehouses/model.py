@@ -37,6 +37,8 @@ class Warehouse(Base):
 
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
+    created_by: Mapped[int] = mapped_column(ForeignKey("users.id"))
+
     updated_by: Mapped[int | None] = mapped_column(
         ForeignKey("users.id"), nullable=True
     )

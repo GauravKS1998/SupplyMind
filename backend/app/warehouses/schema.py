@@ -37,3 +37,5 @@ class WarehouseResponse(BaseModel):
     capacity: float
     current_utilization: float
     is_active: bool
+    created_by: int
+    updated_by: int | None
