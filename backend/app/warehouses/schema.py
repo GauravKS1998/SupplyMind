@@ -1,22 +1,39 @@
 from pydantic import BaseModel
-from datetime import datetime
+
+from .enums import WarehouseType
 
 
 class WarehouseCreateRequest(BaseModel):
+    warehouse_code: str
     name: str
-    location: str
-    capacity: int
+    warehouse_type: WarehouseType
+    manager_id: int
+    capacity: float
+    address: str
+    city: str
+    state: str
+    country: str
+    postal_code: str
 
 
 class WarehouseUpdateRequest(BaseModel):
     name: str
-    location: str
-    capacity: int
+    warehouse_type: WarehouseType
+    manager_id: int
+    capacity: float
+    address: str
+    city: str
+    state: str
+    country: str
+    postal_code: str
 
 
 class WarehouseResponse(BaseModel):
     id: int
+    warehouse_code: str
     name: str
-    location: str
-    capacity: int
-    created_at: datetime
+    warehouse_type: WarehouseType
+    manager_id: int
+    capacity: float
+    current_utilization: float
+    is_active: bool

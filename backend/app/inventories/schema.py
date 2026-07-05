@@ -1,6 +1,5 @@
 from pydantic import BaseModel
-
-from datetime import datetime
+from datetime import date, datetime
 
 
 class InventoryCreateRequest(BaseModel):
@@ -8,11 +7,18 @@ class InventoryCreateRequest(BaseModel):
     warehouse_id: int
     quantity: int
     reorder_level: int
+    reorder_quantity: int
+    batch_number: str
+    expiry_date: date | None = None
 
 
 class InventoryUpdateRequest(BaseModel):
     quantity: int
+    reserved_quantity: int
     reorder_level: int
+    reorder_quantity: int
+    batch_number: str
+    expiry_date: date | None = None
 
 
 class InventoryResponse(BaseModel):
@@ -27,5 +33,10 @@ class InventoryResponse(BaseModel):
     warehouse_id: int
     warehouse_name: str
     quantity: int
+    reserved_quantity: int
+    available_quantity: int
     reorder_level: int
-    created_at: datetime
+    reorder_quantity: int
+    batch_number: str
+    expiry_date: date | None
+    last_stocked_at: datetime

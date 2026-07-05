@@ -9,22 +9,29 @@ from .repository import find_all, find_by_id, save, delete
 from app.products.repository import find_by_id as find_product_by_id
 from app.warehouses.repository import find_by_id as find_warehouse_by_id
 
+from .exceptions import InventoryNotFoundException, InventoryAlreadyExistsException
 
-def map_inventory_response(inventory: Inventory):
+
+def map_inventory_response(inventory):
     return InventoryResponse(
         id=inventory.id,
-        product_id=inventory.product_id,
+        product_id=inventory.product.id,
         product_name=inventory.product.name,
         product_sku=inventory.product.sku,
-        supplier_name=inventory.product.supplier.name,
+        supplier_name=inventory.product.supplier.company_name,
         category_name=inventory.product.category.name,
         subcategory_name=inventory.product.subcategory.name,
         product_type_name=inventory.product.product_type.name,
-        warehouse_id=inventory.warehouse_id,
+        warehouse_id=inventory.warehouse.id,
         warehouse_name=inventory.warehouse.name,
         quantity=inventory.quantity,
+        reserved_quantity=inventory.reserved_quantity,
+        available_quantity=inventory.available_quantity,
         reorder_level=inventory.reorder_level,
-        created_at=inventory.created_at,
+        reorder_quantity=inventory.reorder_quantity,
+        batch_number=inventory.batch_number,
+        expiry_date=inventory.expiry_date,
+        last_stocked_at=inventory.last_stocked_at,
     )
 
 
@@ -38,27 +45,22 @@ def get_inventory_by_id(db: Session, inventory_id: int):
     inventory = find_by_id(db, inventory_id)
 
     if not inventory:
-        return {"message": "Inventory not found"}
+        raise InventoryNotFoundException("Inventory not found")
 
     return map_inventory_response(inventory)
 
 
 def create_inventory(db: Session, request: InventoryCreateRequest):
-    product = find_product_by_id(db, request.product_id)
-
-    if not product:
-        return {"message": "Product not found"}
-
-    warehouse = find_warehouse_by_id(db, request.warehouse_id)
-
-    if not warehouse:
-        return {"message": "Warehouse not found"}
-
     inventory = Inventory(
         product_id=request.product_id,
         warehouse_id=request.warehouse_id,
         quantity=request.quantity,
+        reserved_quantity=0,
+        available_quantity=request.quantity,
         reorder_level=request.reorder_level,
+        reorder_quantity=request.reorder_quantity,
+        batch_number=request.batch_number,
+        expiry_date=request.expiry_date,
     )
 
     saved_inventory = save(db, inventory)
@@ -70,22 +72,47 @@ def update_inventory(db: Session, inventory_id: int, request: InventoryUpdateReq
     inventory = find_by_id(db, inventory_id)
 
     if not inventory:
-        return {"message": "Inventory not found"}
+        raise InventoryNotFoundException("Inventory not found")
 
     inventory.quantity = request.quantity
+    inventory.reserved_quantity = request.reserved_quantity
+
+    inventory.available_quantity = request.quantity - request.reserved_quantity
+
     inventory.reorder_level = request.reorder_level
+    inventory.reorder_quantity = request.reorder_quantity
+    inventory.batch_number = request.batch_number
+    inventory.expiry_date = request.expiry_date
 
-    updated_inventory = save(db, inventory)
+    db.commit()
+    db.refresh(inventory)
 
-    return map_inventory_response(updated_inventory)
+    return map_inventory_response(inventory)
 
 
-def delete_inventory(db: Session, inventory_id: int):
+def deactivate_inventory(db: Session, inventory_id: int):
     inventory = find_by_id(db, inventory_id)
 
     if not inventory:
-        return {"message": "Inventory not found"}
+        raise InventoryNotFoundException("Inventory not found")
 
-    delete(db, inventory)
+    inventory.is_active = False
 
-    return {"message": "Inventory deleted successfully"}
+    db.commit()
+    db.refresh(inventory)
+
+    return {"message": "Inventory deactivated successfully"}
+
+
+def reactivate_inventory(db: Session, inventory_id: int):
+    inventory = find_by_id(db, inventory_id)
+
+    if not inventory:
+        raise InventoryNotFoundException("Inventory not found")
+
+    inventory.is_active = True
+
+    db.commit()
+    db.refresh(inventory)
+
+    return {"message": "Inventory reactivated successfully"}
