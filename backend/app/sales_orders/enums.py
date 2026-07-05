@@ -1,0 +1,12 @@
+from enum import Enum
+
+
+class SalesOrderStatus(str, Enum):
+    DRAFT = "DRAFT"
+    CONFIRMED = "CONFIRMED"
+    RESERVED = "RESERVED"
+    DISPATCHED = "DISPATCHED"
+    DELIVERED = "DELIVERED"
+    COMPLETED = "COMPLETED"
+    CANCELLED = "CANCELLED"
+    RETURNED = "RETURNED"
