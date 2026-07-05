@@ -1,26 +1,29 @@
 from sqlalchemy.orm import Session
-
 from .model import Product
 
 
-def find_all(db: Session):  # Similar to EntityManager/JpaRepository
-    return db.query(Product).all()  # Similar to productRepository.findAll()
+def find_all(db: Session):
+    return db.query(Product).all()
 
 
 def find_by_id(db: Session, product_id: int):
-    return (
-        db.query(Product).filter(Product.id == product_id).first()
-    )  # Similar to productRepository.findById(id)
+    return db.query(Product).filter(Product.id == product_id).first()
 
 
-def save(db: Session, product: Product):  # Similar to EntityManager/JpaRepository
-    db.add(product)  # similar to repository.save(product)
-    db.commit()  # Equivalent to transaction commit
-    db.refresh(product)  # Equivalent to entityManager.refresh(entity)
+def find_by_sku(db: Session, sku: str):
+    return db.query(Product).filter(Product.sku == sku).first()
+
+
+def find_active(db: Session):
+    return db.query(Product).filter(Product.is_active == True).all()
+
+
+def find_inactive(db: Session):
+    return db.query(Product).filter(Product.is_active == False).all()
+
+
+def save(db: Session, product: Product):
+    db.add(product)
+    db.flush()
 
     return product
-
-
-def delete(db: Session, product: Product):
-    db.delete(product)  # Similar to repository.delete(entity);
-    db.commit()
