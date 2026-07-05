@@ -4,3 +4,7 @@ class SupplierException(Exception):
 
 class SupplierNotFoundException(SupplierException):
     pass
+
+
+class UnauthorizedAccessException(SupplierException):
+    pass
