@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from sqlalchemy.orm import Session
 
+from app.auth.dependencies import require_roles
+from app.auth.enums import UserRole
 from app.database.database import get_db
 
 from .schema import ExternalRegisterRequest, InternalUserCreateRequest, LoginRequest
@@ -31,8 +33,12 @@ def register(request: ExternalRegisterRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.post("/internal/create")
-def create_internal(request: InternalUserCreateRequest, db: Session = Depends(get_db)):
+@router.post("/register/internal")
+def register_internal(
+    request: InternalUserCreateRequest,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)),
+):
     try:
         return create_internal_user(db, request)
     except UserAlreadyExistsException as e:
@@ -50,7 +56,11 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
 
 
 @router.put("/approve/{email}")
-def approve(email: str, db: Session = Depends(get_db)):
+def approve(
+    email: str,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)),
+):
     try:
         return approve_user(db, email)
     except UserNotFoundException as e:

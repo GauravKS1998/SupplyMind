@@ -94,7 +94,9 @@ def login_user(db: Session, request: LoginRequest):
     if user.approval_status != ApprovalStatus.APPROVED:
         raise AccountPendingApprovalException("Account pending approval")
 
-    access_token = create_access_token({"sub": user.email, "role": user.role})
+    access_token = create_access_token(
+        {"sub": user.email, "user_id": user.id, "role": user.role.value}
+    )
 
     return AuthResponse(access_token=access_token, token_type="Bearer")
 
