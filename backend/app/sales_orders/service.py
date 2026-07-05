@@ -40,10 +40,6 @@ def map_sales_order(sales_order: SalesOrder):
         total_price=sales_order.total_price,
         sold_at=sales_order.sold_at,
         created_by=sales_order.created_by,
-        completed_at=sales_order.completed_at,
-        confirmed_at=sales_order.confirmed_at,
-        delivered_at=sales_order.delivered_at,
-        returned_at=sales_order.returned_at,
         status=sales_order.status,
         customer_id=sales_order.customer_id,
     )

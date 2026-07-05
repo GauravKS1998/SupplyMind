@@ -33,7 +33,3 @@ class SalesOrderResponse(BaseModel):
     created_by: int
 
     sold_at: datetime
-    completed_at: datetime | None = None
-    confirmed_at: datetime | None = None
-    delivered_at: datetime | None = None
-    returned_at: datetime | None = None
