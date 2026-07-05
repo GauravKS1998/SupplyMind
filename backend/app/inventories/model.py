@@ -37,5 +37,17 @@ class Inventory(Base):
 
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
+    updated_by: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id"), nullable=True
+    )
+
+    deactivated_by: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id"), nullable=True
+    )
+
+    reactivated_by: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id"), nullable=True
+    )
+
     product = relationship("Product")
     warehouse = relationship("Warehouse")
