@@ -1,26 +1,52 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
-from datetime import datetime
+from .enums import SupplierType
 
 
 class SupplierCreateRequest(BaseModel):
-    name: str
-    contact_email: str
+    user_id: int
+    company_name: str
+    gst_number: str
+    contact_person: str
     phone: str
+    email: EmailStr
     address: str
+    city: str
+    state: str
+    country: str
+    postal_code: str
+    supplier_type: SupplierType
+    lead_time_days: int
+    payment_terms: str
 
 
 class SupplierUpdateRequest(BaseModel):
-    name: str
-    contact_email: str
+    company_name: str
+    gst_number: str
+    contact_person: str
     phone: str
+    email: EmailStr
     address: str
+    city: str
+    state: str
+    country: str
+    postal_code: str
+    supplier_type: SupplierType
+    lead_time_days: int
+    payment_terms: str
 
 
 class SupplierResponse(BaseModel):
     id: int
-    name: str
-    contact_email: str
+    user_id: int
+    company_name: str
+    gst_number: str
+    contact_person: str
     phone: str
-    address: str
-    created_at: datetime
+    email: str
+    supplier_type: SupplierType
+    lead_time_days: int
+    payment_terms: str
+    rating: float
+    is_verified: bool
+    is_active: bool
