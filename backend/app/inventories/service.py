@@ -4,7 +4,7 @@ from .model import Inventory
 
 from .schema import InventoryCreateRequest, InventoryUpdateRequest, InventoryResponse
 
-from .repository import find_all, find_by_id, save, delete
+from .repository import find_all, find_by_id, save
 
 from app.products.repository import find_by_id as find_product_by_id
 from app.warehouses.repository import find_by_id as find_warehouse_by_id

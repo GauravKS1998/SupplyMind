@@ -1,10 +1,12 @@
-from sqlalchemy import Integer, ForeignKey, DateTime
+from sqlalchemy import Integer, String, ForeignKey, DateTime
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from datetime import datetime, timezone
 
 from app.database.database import Base
+
+from .enums import TransferStatus
 
 
 class StockTransfer(Base):
@@ -21,8 +23,16 @@ class StockTransfer(Base):
 
     quantity: Mapped[int] = mapped_column(Integer)
 
+    status: Mapped[str] = mapped_column(String(50), default=TransferStatus.INITIATED)
+
+    approved_by: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
+
     transferred_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+
+    completed_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=True
     )
 
     product = relationship("Product")

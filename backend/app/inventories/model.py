@@ -1,8 +1,8 @@
-from sqlalchemy import Integer, Boolean, ForeignKey, String, Date, DateTime
+from sqlalchemy import Date, Integer, Boolean, ForeignKey, String, DateTime
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 from app.database.database import Base
 
@@ -29,7 +29,7 @@ class Inventory(Base):
 
     batch_number: Mapped[str] = mapped_column(String(100))
 
-    expiry_date: Mapped[Date] = mapped_column(nullable=True)
+    expiry_date: Mapped[date | None] = mapped_column(Date, nullable=True)
 
     last_stocked_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
