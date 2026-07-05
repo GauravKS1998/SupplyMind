@@ -11,7 +11,6 @@ class PurchaseOrderCreateRequest(BaseModel):
     warehouse_id: int
     quantity: int
     expected_delivery_date: datetime | None = None
-    created_by: int
 
 
 class PurchaseOrderResponse(BaseModel):
@@ -30,4 +29,9 @@ class PurchaseOrderResponse(BaseModel):
     actual_delivery_date: datetime | None
     created_by: int
     approved_by: int | None
+    closed_by: int | None
+    cancelled_by: int | None
+    rejected_by: int | None
+    updated_by: int | None
+    updated_at: datetime | None
     created_at: datetime

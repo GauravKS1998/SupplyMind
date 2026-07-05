@@ -38,23 +38,7 @@ class PurchaseOrderCannotBeCancelledException(PurchaseOrderException):
     pass
 
 
-class SupplierNotFoundException(PurchaseOrderException):
-    pass
-
-
-class ProductNotFoundException(PurchaseOrderException):
-    pass
-
-
-class WarehouseNotFoundException(PurchaseOrderException):
-    pass
-
-
 class InventoryNotFoundException(PurchaseOrderException):
-    pass
-
-
-class PurchaseOrderAlreadyProcessedException(PurchaseOrderException):
     pass
 
 

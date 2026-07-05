@@ -23,7 +23,6 @@ from .enums import PurchaseOrderStatus
 from .exceptions import (
     InventoryNotFoundException,
     PurchaseOrderAlreadyExistsException,
-    PurchaseOrderAlreadyProcessedException,
     PurchaseOrderCannotBeCancelledException,
     PurchaseOrderFailException,
     PurchaseOrderNotApprovedException,
@@ -32,10 +31,7 @@ from .exceptions import (
     PurchaseOrderNotOrderedException,
     PurchaseOrderNotReceivedException,
     PurchaseOrderNotSubmittedException,
-    SupplierNotFoundException,
-    ProductNotFoundException,
     PurchaseOrderNotFoundException,
-    WarehouseNotFoundException,
 )
 
 
@@ -56,6 +52,11 @@ def map_purchase_order_response(po):
         actual_delivery_date=po.actual_delivery_date,
         created_by=po.created_by,
         approved_by=po.approved_by,
+        closed_by=po.closed_by,
+        cancelled_by=po.cancelled_by,
+        rejected_by=po.rejected_by,
+        updated_by=po.updated_by,
+        updated_at=po.updated_at,
         created_at=po.created_at,
     )
 
@@ -66,7 +67,9 @@ def get_all_purchase_orders(db: Session):
     return [map_purchase_order_response(po) for po in purchase_orders]
 
 
-def create_draft_po(db: Session, request: PurchaseOrderCreateRequest):
+def create_draft_po(
+    db: Session, request: PurchaseOrderCreateRequest, current_user_id: int
+):
     existing_po = find_by_po_number(db, request.po_number)
 
     if existing_po:
@@ -80,7 +83,7 @@ def create_draft_po(db: Session, request: PurchaseOrderCreateRequest):
             warehouse_id=request.warehouse_id,
             quantity=request.quantity,
             expected_delivery_date=request.expected_delivery_date,
-            created_by=request.created_by,
+            created_by=current_user_id,
             status=PurchaseOrderStatus.DRAFT,
         )
 
@@ -98,7 +101,7 @@ def create_draft_po(db: Session, request: PurchaseOrderCreateRequest):
         raise PurchaseOrderFailException("Failed to create purchase order")
 
 
-def submit_po(db: Session, po_id: int):
+def submit_po(db: Session, po_id: int, current_user_id: int):
     po = find_by_id(db, po_id)
 
     if not po:
@@ -109,6 +112,8 @@ def submit_po(db: Session, po_id: int):
 
     try:
         po.status = PurchaseOrderStatus.SUBMITTED
+        po.updated_by = current_user_id
+        po.updated_at = datetime.now(timezone.utc)
 
         db.commit()
         db.refresh(po)
@@ -120,7 +125,7 @@ def submit_po(db: Session, po_id: int):
         raise PurchaseOrderFailException("Failed to submit purchase order")
 
 
-def approve_po(db: Session, po_id: int, approver_id: int):
+def approve_po(db: Session, po_id: int, current_user_id: int):
     po = find_by_id(db, po_id)
 
     if not po:
@@ -131,7 +136,9 @@ def approve_po(db: Session, po_id: int, approver_id: int):
 
     try:
         po.status = PurchaseOrderStatus.APPROVED
-        po.approved_by = approver_id
+        po.approved_by = current_user_id
+        po.updated_by = current_user_id
+        po.updated_at = datetime.now(timezone.utc)
 
         db.commit()
         db.refresh(po)
@@ -143,7 +150,7 @@ def approve_po(db: Session, po_id: int, approver_id: int):
         raise PurchaseOrderFailException("Failed to approve purchase order")
 
 
-def reject_po(db: Session, po_id: int):
+def reject_po(db: Session, po_id: int, current_user_id: int):
     po = find_by_id(db, po_id)
 
     if not po:
@@ -154,6 +161,9 @@ def reject_po(db: Session, po_id: int):
 
     try:
         po.status = PurchaseOrderStatus.REJECTED
+        po.rejected_by = current_user_id
+        po.updated_by = current_user_id
+        po.updated_at = datetime.now(timezone.utc)
 
         db.commit()
         db.refresh(po)
@@ -165,7 +175,7 @@ def reject_po(db: Session, po_id: int):
         raise PurchaseOrderFailException("Failed to reject purchase order")
 
 
-def mark_ordered(db: Session, po_id: int):
+def mark_ordered(db: Session, po_id: int, current_user_id: int):
     po = find_by_id(db, po_id)
 
     if not po:
@@ -178,6 +188,8 @@ def mark_ordered(db: Session, po_id: int):
 
     try:
         po.status = PurchaseOrderStatus.ORDERED
+        po.updated_by = current_user_id
+        po.updated_at = datetime.now(timezone.utc)
 
         db.commit()
         db.refresh(po)
@@ -189,7 +201,7 @@ def mark_ordered(db: Session, po_id: int):
         raise PurchaseOrderFailException("Failed to mark purchase order as ordered")
 
 
-def mark_in_transit(db: Session, po_id: int):
+def mark_in_transit(db: Session, po_id: int, current_user_id: int):
     po = find_by_id(db, po_id)
 
     if not po:
@@ -200,6 +212,8 @@ def mark_in_transit(db: Session, po_id: int):
 
     try:
         po.status = PurchaseOrderStatus.IN_TRANSIT
+        po.updated_by = current_user_id
+        po.updated_at = datetime.now(timezone.utc)
 
         db.commit()
         db.refresh(po)
@@ -214,7 +228,7 @@ def mark_in_transit(db: Session, po_id: int):
 from datetime import datetime, timezone
 
 
-def receive_po(db: Session, po_id: int):
+def receive_po(db: Session, po_id: int, current_user_id: int):
     po = find_by_id(db, po_id)
 
     if not po:
@@ -234,6 +248,9 @@ def receive_po(db: Session, po_id: int):
 
         po.status = PurchaseOrderStatus.RECEIVED
         po.actual_delivery_date = datetime.now(timezone.utc)
+        po.received_by = current_user_id
+        po.updated_by = current_user_id
+        po.updated_at = datetime.now(timezone.utc)
 
         db.commit()
         db.refresh(po)
@@ -245,7 +262,7 @@ def receive_po(db: Session, po_id: int):
         raise PurchaseOrderFailException("Failed to receive purchase order")
 
 
-def close_po(db: Session, po_id: int):
+def close_po(db: Session, po_id: int, current_user_id: int):
     po = find_by_id(db, po_id)
 
     if not po:
@@ -256,6 +273,9 @@ def close_po(db: Session, po_id: int):
 
     try:
         po.status = PurchaseOrderStatus.CLOSED
+        po.closed_by = current_user_id
+        po.updated_by = current_user_id
+        po.updated_at = datetime.now(timezone.utc)
 
         db.commit()
         db.refresh(po)
@@ -267,7 +287,7 @@ def close_po(db: Session, po_id: int):
         raise PurchaseOrderFailException("Failed to close purchase order")
 
 
-def cancel_po(db: Session, po_id: int):
+def cancel_po(db: Session, po_id: int, current_user_id: int):
     po = find_by_id(db, po_id)
 
     if not po:
@@ -284,6 +304,9 @@ def cancel_po(db: Session, po_id: int):
 
     try:
         po.status = PurchaseOrderStatus.CANCELLED
+        po.cancelled_by = current_user_id
+        po.updated_by = current_user_id
+        po.updated_at = datetime.now(timezone.utc)
 
         db.commit()
         db.refresh(po)
