@@ -1,11 +1,8 @@
 from sqlalchemy import Integer, String, ForeignKey, DateTime
-
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
 from datetime import datetime, timezone
 
 from app.database.database import Base
-
 from .enums import TransferStatus
 
 
@@ -25,7 +22,13 @@ class StockTransfer(Base):
 
     status: Mapped[str] = mapped_column(String(50), default=TransferStatus.INITIATED)
 
-    approved_by: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
+    initiated_by: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id"), nullable=True
+    )
+
+    approved_by: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id"), nullable=True
+    )
 
     rejected_by: Mapped[int | None] = mapped_column(
         ForeignKey("users.id"), nullable=True
@@ -47,8 +50,18 @@ class StockTransfer(Base):
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
 
-    completed_at: Mapped[datetime] = mapped_column(
+    completed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+    updated_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
 
     product = relationship("Product")
+
+    source_warehouse = relationship("Warehouse", foreign_keys=[source_warehouse_id])
+
+    destination_warehouse = relationship(
+        "Warehouse", foreign_keys=[destination_warehouse_id]
+    )

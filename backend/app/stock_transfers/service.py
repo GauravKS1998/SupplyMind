@@ -25,7 +25,7 @@ from .exceptions import (
 )
 
 
-def initiate_transfer(db: Session, request: StockTransferRequest):
+def initiate_transfer(db: Session, request: StockTransferRequest, current_user_id: int):
     if request.source_warehouse_id == request.destination_warehouse_id:
         raise InvalidTransferRequestException("Source and destination cannot be same")
 
@@ -56,6 +56,7 @@ def initiate_transfer(db: Session, request: StockTransferRequest):
             destination_warehouse_id=request.destination_warehouse_id,
             quantity=request.quantity,
             status=TransferStatus.INITIATED,
+            initiated_by=current_user_id,
         )
 
         saved_transfer = save_transfer(db, transfer)
@@ -66,8 +67,12 @@ def initiate_transfer(db: Session, request: StockTransferRequest):
         return StockTransferResponse(
             id=saved_transfer.id,
             product_id=saved_transfer.product_id,
+            product_name=saved_transfer.product.name,
+            product_sku=saved_transfer.product.sku,
             source_warehouse_id=saved_transfer.source_warehouse_id,
+            source_warehouse_name=saved_transfer.source_warehouse.name,
             destination_warehouse_id=saved_transfer.destination_warehouse_id,
+            destination_warehouse_name=saved_transfer.destination_warehouse.name,
             quantity=saved_transfer.quantity,
             status=saved_transfer.status,
             transferred_at=saved_transfer.transferred_at,
@@ -80,7 +85,7 @@ def initiate_transfer(db: Session, request: StockTransferRequest):
         raise TransferFailedException("Transfer failed and rolled back")
 
 
-def approve_transfer(db: Session, transfer_id: int, approver_id: int):
+def approve_transfer(db: Session, transfer_id: int, current_user_id: int):
     transfer = find_transfer_by_id(db, transfer_id)
 
     if not transfer:
@@ -91,7 +96,9 @@ def approve_transfer(db: Session, transfer_id: int, approver_id: int):
 
     try:
         transfer.status = TransferStatus.APPROVED
-        transfer.approved_by = approver_id
+        transfer.approved_by = current_user_id
+        transfer.updated_by = current_user_id
+        transfer.updated_at = datetime.now(timezone.utc)
 
         db.commit()
         db.refresh(transfer)
@@ -103,7 +110,7 @@ def approve_transfer(db: Session, transfer_id: int, approver_id: int):
         raise TransferFailedException("Transfer approval failed and rolled back")
 
 
-def reject_transfer(db: Session, transfer_id: int):
+def reject_transfer(db: Session, transfer_id: int, current_user_id: int):
     transfer = find_transfer_by_id(db, transfer_id)
 
     if not transfer:
@@ -121,6 +128,9 @@ def reject_transfer(db: Session, transfer_id: int):
         source_inventory.available_quantity += transfer.quantity
 
         transfer.status = TransferStatus.REJECTED
+        transfer.rejected_by = current_user_id
+        transfer.updated_by = current_user_id
+        transfer.updated_at = datetime.now(timezone.utc)
 
         db.commit()
         db.refresh(transfer)
@@ -132,7 +142,7 @@ def reject_transfer(db: Session, transfer_id: int):
         raise TransferFailedException("Transfer rejection failed and rolled back")
 
 
-def mark_in_transit(db: Session, transfer_id: int):
+def mark_in_transit(db: Session, transfer_id: int, current_user_id: int):
     transfer = find_transfer_by_id(db, transfer_id)
 
     if not transfer:
@@ -145,6 +155,8 @@ def mark_in_transit(db: Session, transfer_id: int):
 
     try:
         transfer.status = TransferStatus.IN_TRANSIT
+        transfer.updated_by = current_user_id
+        transfer.updated_at = datetime.now(timezone.utc)
 
         db.commit()
         db.refresh(transfer)
@@ -158,7 +170,7 @@ def mark_in_transit(db: Session, transfer_id: int):
         )
 
 
-def complete_transfer(db: Session, transfer_id: int):
+def complete_transfer(db: Session, transfer_id: int, current_user_id: int):
     transfer = find_transfer_by_id(db, transfer_id)
 
     if not transfer:
@@ -184,6 +196,9 @@ def complete_transfer(db: Session, transfer_id: int):
 
         transfer.status = TransferStatus.COMPLETED
         transfer.completed_at = datetime.now(timezone.utc)
+        transfer.completed_by = current_user_id
+        transfer.updated_by = current_user_id
+        transfer.updated_at = datetime.now(timezone.utc)
 
         db.commit()
         db.refresh(transfer)
@@ -195,7 +210,7 @@ def complete_transfer(db: Session, transfer_id: int):
         raise TransferFailedException("Completing transfer failed and rolled back")
 
 
-def cancel_transfer(db: Session, transfer_id: int):
+def cancel_transfer(db: Session, transfer_id: int, current_user_id: int):
     transfer = find_transfer_by_id(db, transfer_id)
 
     if not transfer:
@@ -215,6 +230,9 @@ def cancel_transfer(db: Session, transfer_id: int):
         source_inventory.available_quantity += transfer.quantity
 
         transfer.status = TransferStatus.CANCELLED
+        transfer.cancelled_by = current_user_id
+        transfer.updated_by = current_user_id
+        transfer.updated_at = datetime.now(timezone.utc)
 
         db.commit()
         db.refresh(transfer)
