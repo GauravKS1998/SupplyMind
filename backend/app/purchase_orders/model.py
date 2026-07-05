@@ -1,4 +1,4 @@
-from sqlalchemy import Integer, String, DateTime, ForeignKey
+from sqlalchemy import Integer, String, ForeignKey, DateTime
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -6,12 +6,16 @@ from datetime import datetime, timezone
 
 from app.database.database import Base
 
+from .enums import PurchaseOrderStatus
+
 
 class PurchaseOrder(Base):
 
     __tablename__ = "purchase_orders"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+
+    po_number: Mapped[str] = mapped_column(String(100), unique=True)
 
     supplier_id: Mapped[int] = mapped_column(ForeignKey("suppliers.id"))
 
@@ -21,9 +25,23 @@ class PurchaseOrder(Base):
 
     quantity: Mapped[int] = mapped_column(Integer)
 
-    status: Mapped[str] = mapped_column(String(50), default="PENDING")
+    status: Mapped[str] = mapped_column(String(50), default=PurchaseOrderStatus.DRAFT)
 
-    ordered_at: Mapped[datetime] = mapped_column(
+    expected_delivery_date: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+    actual_delivery_date: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+    created_by: Mapped[int] = mapped_column(ForeignKey("users.id"))
+
+    approved_by: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id"), nullable=True
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
 

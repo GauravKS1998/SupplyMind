@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from .model import PurchaseOrder
 from .schema import PurchaseOrderCreateRequest, PurchaseOrderResponse
 
-from .repository import find_all, find_by_id, save
+from .repository import find_all, find_by_id, save, find_by_po_number
 
 from app.suppliers.repository import find_by_id as find_supplier_by_id
 
@@ -18,84 +18,278 @@ from app.inventories.repository import (
 
 from app.inventories.model import Inventory
 
+from .enums import PurchaseOrderStatus
 
-def map_purchase_order(purchase_order: PurchaseOrder):
+from .exceptions import (
+    InventoryNotFoundException,
+    PurchaseOrderAlreadyExistsException,
+    PurchaseOrderAlreadyProcessedException,
+    PurchaseOrderCannotBeCancelledException,
+    PurchaseOrderFailException,
+    PurchaseOrderNotApprovedException,
+    PurchaseOrderNotDraftedException,
+    PurchaseOrderNotInTransitException,
+    PurchaseOrderNotOrderedException,
+    PurchaseOrderNotReceivedException,
+    PurchaseOrderNotSubmittedException,
+    SupplierNotFoundException,
+    ProductNotFoundException,
+    PurchaseOrderNotFoundException,
+    WarehouseNotFoundException,
+)
+
+
+def map_purchase_order_response(po):
     return PurchaseOrderResponse(
-        id=purchase_order.id,
-        supplier_id=purchase_order.supplier_id,
-        supplier_name=purchase_order.supplier.name,
-        product_id=purchase_order.product_id,
-        product_name=purchase_order.product.name,
-        product_sku=purchase_order.product.sku,
-        warehouse_id=purchase_order.warehouse_id,
-        warehouse_name=purchase_order.warehouse.name,
-        quantity=purchase_order.quantity,
-        status=purchase_order.status,
-        ordered_at=purchase_order.ordered_at,
+        id=po.id,
+        po_number=po.po_number,
+        supplier_id=po.supplier.id,
+        supplier_name=po.supplier.company_name,
+        product_id=po.product.id,
+        product_name=po.product.name,
+        product_sku=po.product.sku,
+        warehouse_id=po.warehouse.id,
+        warehouse_name=po.warehouse.name,
+        quantity=po.quantity,
+        status=po.status,
+        expected_delivery_date=po.expected_delivery_date,
+        actual_delivery_date=po.actual_delivery_date,
+        created_by=po.created_by,
+        approved_by=po.approved_by,
+        created_at=po.created_at,
     )
 
 
 def get_all_purchase_orders(db: Session):
     purchase_orders = find_all(db)
 
-    return [map_purchase_order(po) for po in purchase_orders]
+    return [map_purchase_order_response(po) for po in purchase_orders]
 
 
-def create_purchase_order(db: Session, request: PurchaseOrderCreateRequest):
-    supplier = find_supplier_by_id(db, request.supplier_id)
+def create_draft_po(db: Session, request: PurchaseOrderCreateRequest):
+    existing_po = find_by_po_number(db, request.po_number)
 
-    if not supplier:
-        return {"message": "Supplier not found"}
+    if existing_po:
+        raise PurchaseOrderAlreadyExistsException("PO number already exists")
 
-    product = find_product_by_id(db, request.product_id)
-
-    if not product:
-        return {"message": "Product not found"}
-
-    warehouse = find_warehouse_by_id(db, request.warehouse_id)
-
-    if not warehouse:
-        return {"message": "Warehouse not found"}
-
-    purchase_order = PurchaseOrder(
-        supplier_id=request.supplier_id,
-        product_id=request.product_id,
-        warehouse_id=request.warehouse_id,
-        quantity=request.quantity,
-    )
-
-    saved_po = save(db, purchase_order)
-
-    return map_purchase_order(saved_po)
-
-
-def approve_purchase_order(db: Session, purchase_order_id: int):
-    purchase_order = find_by_id(db, purchase_order_id)
-
-    if not purchase_order:
-        return {"message": "Purchase order not found"}
-
-    if purchase_order.status != "PENDING":
-        return {"message": "Purchase order has already been processed"}
-
-    inventory = find_by_product_and_warehouse(
-        db, purchase_order.product_id, purchase_order.warehouse_id
-    )
-
-    if inventory:
-        inventory.quantity += purchase_order.quantity
-    else:
-        inventory = Inventory(
-            product_id=purchase_order.product_id,
-            warehouse_id=purchase_order.warehouse_id,
-            quantity=purchase_order.quantity,
-            reorder_level=10,
+    try:
+        po = PurchaseOrder(
+            po_number=request.po_number,
+            supplier_id=request.supplier_id,
+            product_id=request.product_id,
+            warehouse_id=request.warehouse_id,
+            quantity=request.quantity,
+            expected_delivery_date=request.expected_delivery_date,
+            created_by=request.created_by,
+            status=PurchaseOrderStatus.DRAFT,
         )
 
-    save_inventory(db, inventory)
+        saved_po = save(db, po)
 
-    purchase_order.status = "COMPLETED"
+        db.commit()
+        db.refresh(saved_po)
 
-    saved_po = save(db, purchase_order)
+        saved_po = find_by_id(db, saved_po.id)
 
-    return map_purchase_order(saved_po)
+        return map_purchase_order_response(saved_po)
+
+    except Exception:
+        db.rollback()
+        raise PurchaseOrderFailException("Failed to create purchase order")
+
+
+def submit_po(db: Session, po_id: int):
+    po = find_by_id(db, po_id)
+
+    if not po:
+        raise PurchaseOrderNotFoundException("Purchase order not found")
+
+    if po.status != PurchaseOrderStatus.DRAFT:
+        raise PurchaseOrderNotDraftedException("Only draft PO can be submitted")
+
+    try:
+        po.status = PurchaseOrderStatus.SUBMITTED
+
+        db.commit()
+        db.refresh(po)
+
+        return {"message": "Purchase order submitted successfully"}
+
+    except Exception:
+        db.rollback()
+        raise PurchaseOrderFailException("Failed to submit purchase order")
+
+
+def approve_po(db: Session, po_id: int, approver_id: int):
+    po = find_by_id(db, po_id)
+
+    if not po:
+        raise PurchaseOrderNotFoundException("Purchase order not found")
+
+    if po.status != PurchaseOrderStatus.SUBMITTED:
+        raise PurchaseOrderNotSubmittedException("Only submitted PO can be approved")
+
+    try:
+        po.status = PurchaseOrderStatus.APPROVED
+        po.approved_by = approver_id
+
+        db.commit()
+        db.refresh(po)
+
+        return {"message": "Purchase order approved successfully"}
+
+    except Exception:
+        db.rollback()
+        raise PurchaseOrderFailException("Failed to approve purchase order")
+
+
+def reject_po(db: Session, po_id: int):
+    po = find_by_id(db, po_id)
+
+    if not po:
+        raise PurchaseOrderNotFoundException("Purchase order not found")
+
+    if po.status != PurchaseOrderStatus.SUBMITTED:
+        raise PurchaseOrderNotSubmittedException("Only submitted PO can be rejected")
+
+    try:
+        po.status = PurchaseOrderStatus.REJECTED
+
+        db.commit()
+        db.refresh(po)
+
+        return {"message": "Purchase order rejected successfully"}
+
+    except Exception:
+        db.rollback()
+        raise PurchaseOrderFailException("Failed to reject purchase order")
+
+
+def mark_ordered(db: Session, po_id: int):
+    po = find_by_id(db, po_id)
+
+    if not po:
+        raise PurchaseOrderNotFoundException("Purchase order not found")
+
+    if po.status != PurchaseOrderStatus.APPROVED:
+        raise PurchaseOrderNotApprovedException(
+            "Only approved PO can be marked ordered"
+        )
+
+    try:
+        po.status = PurchaseOrderStatus.ORDERED
+
+        db.commit()
+        db.refresh(po)
+
+        return {"message": "Purchase order marked as ordered"}
+
+    except Exception:
+        db.rollback()
+        raise PurchaseOrderFailException("Failed to mark purchase order as ordered")
+
+
+def mark_in_transit(db: Session, po_id: int):
+    po = find_by_id(db, po_id)
+
+    if not po:
+        raise PurchaseOrderNotFoundException("Purchase order not found")
+
+    if po.status != PurchaseOrderStatus.ORDERED:
+        raise PurchaseOrderNotOrderedException("Only ordered PO can move to transit")
+
+    try:
+        po.status = PurchaseOrderStatus.IN_TRANSIT
+
+        db.commit()
+        db.refresh(po)
+
+        return {"message": "Purchase order is now in transit"}
+
+    except Exception:
+        db.rollback()
+        raise PurchaseOrderFailException("Failed to mark purchase order as in transit")
+
+
+from datetime import datetime, timezone
+
+
+def receive_po(db: Session, po_id: int):
+    po = find_by_id(db, po_id)
+
+    if not po:
+        raise PurchaseOrderNotFoundException("Purchase order not found")
+
+    if po.status != PurchaseOrderStatus.IN_TRANSIT:
+        raise PurchaseOrderNotInTransitException("Only in-transit PO can be received")
+
+    inventory = find_by_product_and_warehouse(db, po.product_id, po.warehouse_id)
+
+    if not inventory:
+        raise InventoryNotFoundException("Inventory not found")
+
+    try:
+        inventory.quantity += po.quantity
+        inventory.available_quantity += po.quantity
+
+        po.status = PurchaseOrderStatus.RECEIVED
+        po.actual_delivery_date = datetime.now(timezone.utc)
+
+        db.commit()
+        db.refresh(po)
+
+        return {"message": "Purchase order received successfully"}
+
+    except Exception:
+        db.rollback()
+        raise PurchaseOrderFailException("Failed to receive purchase order")
+
+
+def close_po(db: Session, po_id: int):
+    po = find_by_id(db, po_id)
+
+    if not po:
+        raise PurchaseOrderNotFoundException("Purchase order not found")
+
+    if po.status != PurchaseOrderStatus.RECEIVED:
+        raise PurchaseOrderNotReceivedException("Only received PO can be closed")
+
+    try:
+        po.status = PurchaseOrderStatus.CLOSED
+
+        db.commit()
+        db.refresh(po)
+
+        return {"message": "Purchase order closed successfully"}
+
+    except Exception:
+        db.rollback()
+        raise PurchaseOrderFailException("Failed to close purchase order")
+
+
+def cancel_po(db: Session, po_id: int):
+    po = find_by_id(db, po_id)
+
+    if not po:
+        raise PurchaseOrderNotFoundException("Purchase order not found")
+
+    if po.status not in {
+        PurchaseOrderStatus.DRAFT,
+        PurchaseOrderStatus.APPROVED,
+        PurchaseOrderStatus.ORDERED,
+    }:
+        raise PurchaseOrderCannotBeCancelledException(
+            "PO cannot be cancelled in current state"
+        )
+
+    try:
+        po.status = PurchaseOrderStatus.CANCELLED
+
+        db.commit()
+        db.refresh(po)
+
+        return {"message": "Purchase order cancelled successfully"}
+
+    except Exception:
+        db.rollback()
+        raise PurchaseOrderFailException("Failed to cancel purchase order")
