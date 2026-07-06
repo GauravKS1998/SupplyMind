@@ -7,9 +7,16 @@ class ProductTypeCreateRequest(BaseModel):
     subcategory_id: int
 
 
+class ProductTypeUpdateRequest(BaseModel):
+    name: str
+    subcategory_id: int
+
+
 class ProductTypeResponse(BaseModel):
     id: int
     name: str
     subcategory_id: int
     subcategory_name: str
+    is_active: bool
     created_at: datetime
+    updated_at: datetime | None

@@ -17,9 +17,20 @@ def find_by_subcategory_id(db: Session, subcategory_id: int):
     )
 
 
+def find_by_name(db: Session, name: str):
+    return db.query(ProductType).filter(ProductType.name == name).first()
+
+
+def find_active(db: Session):
+    return db.query(ProductType).filter(ProductType.is_active == True).all()
+
+
+def find_inactive(db: Session):
+    return db.query(ProductType).filter(ProductType.is_active == False).all()
+
+
 def save(db: Session, product_type: ProductType):
     db.add(product_type)
-    db.commit()
-    db.refresh(product_type)
+    db.flush()
 
     return product_type
