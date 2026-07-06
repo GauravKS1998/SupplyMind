@@ -12,7 +12,11 @@ def find_by_id(db: Session, subcategory_id: int):
 
 
 def find_by_category_id(db: Session, category_id: int):
-    return db.query(SubCategory).filter(SubCategory.category_id == category_id).all()
+    return (
+        db.query(SubCategory)
+        .filter(SubCategory.category_id == category_id, SubCategory.is_active == True)
+        .all()
+    )
 
 
 def find_by_name(db: Session, name: str):

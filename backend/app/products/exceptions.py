@@ -2,6 +2,10 @@ class ProductNotFoundException(Exception):
     pass
 
 
+class ProductAlreadyExistsException(Exception):
+    pass
+
+
 class CategoryNotFoundException(Exception):
     pass
 

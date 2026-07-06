@@ -36,5 +36,9 @@ class ProductResponse(BaseModel):
     product_type_name: str
     price: float
     is_active: bool
+    created_by: int
+    updated_by: int | None
+    deactivated_by: int | None
+    reactivated_by: int | None
     created_at: datetime
     updated_at: datetime | None
