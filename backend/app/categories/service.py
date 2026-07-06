@@ -1,72 +1,112 @@
 from sqlalchemy.orm import Session
 
+from datetime import datetime, timezone
+
 from .model import Category
 
 from .schema import CategoryCreateRequest, CategoryUpdateRequest, CategoryResponse
 
-from .repository import find_all, find_by_id, save, delete
+from .repository import (
+    find_all,
+    find_by_id,
+    save,
+    find_by_name,
+    find_active,
+    find_inactive,
+)
+
+from .exceptions import CategoryNotFoundException, CategoryAlreadyExistsException
 
 
 def get_all_categories(db: Session):
     categories = find_all(db)
 
     return [
-        CategoryResponse(
-            id=category.id, name=category.name, created_at=category.created_at
-        )
+        CategoryResponse.model_validate(category, from_attributes=True)
         for category in categories
     ]
 
 
-def get_category_by_id(db: Session, category_id: int):
-    category = find_by_id(db, category_id)
+def get_active_categories(db: Session):
+    categories = find_active(db)
 
-    if not category:
-        {"message": "Category not found"}
-
-    return CategoryResponse(
-        id=category.id,
-        name=category.name,
-        created_at=category.created_at,
-    )
+    return [
+        CategoryResponse.model_validate(category, from_attributes=True)
+        for category in categories
+    ]
 
 
-def create_category(db: Session, request: CategoryCreateRequest):
+def get_inactive_categories(db: Session):
+    categories = find_inactive(db)
 
-    category = Category(name=request.name)
+    return [
+        CategoryResponse.model_validate(category, from_attributes=True)
+        for category in categories
+    ]
+
+
+def create_category(db: Session, request: CategoryCreateRequest, current_user_id: int):
+
+    existing = find_by_name(db, request.name)
+
+    if existing:
+        raise CategoryAlreadyExistsException("Category already exists")
+
+    category = Category(name=request.name, created_by=current_user_id)
 
     saved_category = save(db, category)
 
-    return CategoryResponse(
-        id=saved_category.id,
-        name=saved_category.name,
-        created_at=saved_category.created_at,
-    )
+    db.commit()
+    db.refresh(saved_category)
+
+    return CategoryResponse.model_validate(saved_category, from_attributes=True)
 
 
-def update_category(db: Session, category_id: int, request: CategoryUpdateRequest):
+def update_category(
+    db: Session, category_id: int, request: CategoryUpdateRequest, current_user_id: int
+):
     category = find_by_id(db, category_id)
 
     if not category:
-        {"message": "Category not found"}
+        raise CategoryNotFoundException("Category not found")
 
     category.name = request.name
+    category.updated_by = current_user_id
+    category.updated_at = datetime.now(timezone.utc)
 
-    updated_category = save(db, category)
+    db.commit()
+    db.refresh(category)
 
-    return CategoryResponse(
-        id=updated_category.id,
-        name=updated_category.name,
-        created_at=updated_category.created_at,
-    )
+    return CategoryResponse.model_validate(category, from_attributes=True)
 
 
-def delete_category(db: Session, category_id: int):
+def deactivate_category(db: Session, category_id: int, current_user_id: int):
     category = find_by_id(db, category_id)
 
     if not category:
-        {"message": "Category not found"}
+        raise CategoryNotFoundException("Category not found")
 
-    delete(db, category)
+    category.is_active = False
+    category.updated_by = current_user_id
+    category.updated_at = datetime.now(timezone.utc)
 
-    return {"message": "Category deleted successfully"}
+    db.commit()
+    db.refresh(category)
+
+    return {"message": "Category deactivated successfully"}
+
+
+def reactivate_category(db: Session, category_id: int, current_user_id: int):
+    category = find_by_id(db, category_id)
+
+    if not category:
+        raise CategoryNotFoundException("Category not found")
+
+    category.is_active = True
+    category.updated_by = current_user_id
+    category.updated_at = datetime.now(timezone.utc)
+
+    db.commit()
+    db.refresh(category)
+
+    return {"message": "Category reactivated successfully"}

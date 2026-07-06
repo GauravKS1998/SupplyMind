@@ -2,14 +2,18 @@ from fastapi import APIRouter, Depends
 
 from sqlalchemy.orm import Session
 
+from app.auth.dependencies import require_roles
+from app.auth.enums import UserRole
 from app.database.database import get_db
 
 from .service import (
     get_all_categories,
+    get_active_categories,
+    get_inactive_categories,
     create_category,
-    get_category_by_id,
     update_category,
-    delete_category,
+    deactivate_category,
+    reactivate_category,
 )
 
 from .schema import CategoryCreateRequest, CategoryUpdateRequest
@@ -17,28 +21,117 @@ from .schema import CategoryCreateRequest, CategoryUpdateRequest
 router = APIRouter()
 
 
-@router.get("/")
+@router.get(
+    "/",
+    dependencies=[
+        Depends(
+            require_roles(
+                UserRole.SUPER_ADMIN,
+                UserRole.ADMIN,
+                UserRole.PROCUREMENT_MANAGER,
+                UserRole.WAREHOUSE_MANAGER,
+                UserRole.WAREHOUSE_STAFF,
+                UserRole.SALES_MANAGER,
+                UserRole.FINANCE_MANAGER,
+                UserRole.INVENTORY_ANALYST,
+            )
+        )
+    ],
+)
 def get_categories(db: Session = Depends(get_db)):
     return get_all_categories(db)
 
 
-@router.get("/{category_id}")
-def get_single_category(category_id: int, db: Session = Depends(get_db)):
-    return get_category_by_id(db, category_id)
+@router.get(
+    "/active",
+    dependencies=[
+        Depends(
+            require_roles(
+                UserRole.SUPER_ADMIN,
+                UserRole.ADMIN,
+                UserRole.PROCUREMENT_MANAGER,
+                UserRole.WAREHOUSE_MANAGER,
+                UserRole.WAREHOUSE_STAFF,
+                UserRole.SALES_MANAGER,
+                UserRole.FINANCE_MANAGER,
+                UserRole.INVENTORY_ANALYST,
+            )
+        )
+    ],
+)
+def get_active(db: Session = Depends(get_db)):
+    return get_active_categories(db)
+
+
+@router.get(
+    "/inactive",
+    dependencies=[
+        Depends(
+            require_roles(
+                UserRole.SUPER_ADMIN,
+                UserRole.ADMIN,
+                UserRole.PROCUREMENT_MANAGER,
+                UserRole.WAREHOUSE_MANAGER,
+                UserRole.WAREHOUSE_STAFF,
+                UserRole.SALES_MANAGER,
+                UserRole.FINANCE_MANAGER,
+                UserRole.INVENTORY_ANALYST,
+            )
+        )
+    ],
+)
+def get_inactive(db: Session = Depends(get_db)):
+    return get_inactive_categories(db)
 
 
 @router.post("/")
-def add_category(request: CategoryCreateRequest, db: Session = Depends(get_db)):
-    return create_category(db, request)
+def add_category(
+    request: CategoryCreateRequest,
+    db: Session = Depends(get_db),
+    current_user=Depends(
+        require_roles(
+            UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.PROCUREMENT_MANAGER
+        )
+    ),
+):
+    return create_category(db, request, current_user["user_id"])
 
 
 @router.put("/{category_id}")
 def update_existing_category(
-    category_id: int, request: CategoryUpdateRequest, db: Session = Depends(get_db)
+    category_id: int,
+    request: CategoryUpdateRequest,
+    db: Session = Depends(get_db),
+    current_user=Depends(
+        require_roles(
+            UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.PROCUREMENT_MANAGER
+        )
+    ),
 ):
-    return update_category(db, category_id, request)
+    return update_category(db, category_id, request, current_user["user_id"])
 
 
-@router.delete("/{category_id}")
-def remove_category(category_id: int, db: Session = Depends(get_db)):
-    return delete_category(db, category_id)
+@router.put("/{category_id}/deactivate")
+def deactivate(
+    category_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(
+        require_roles(
+            UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.PROCUREMENT_MANAGER
+        )
+    ),
+):
+    return deactivate_category(db, category_id, current_user["user_id"])
+
+
+@router.put("/{category_id}/reactivate")
+def deactivate(
+    category_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(
+        require_roles(
+            UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.PROCUREMENT_MANAGER
+        )
+    ),
+):
+    return reactivate_category(db, category_id, current_user["user_id"])

@@ -7,7 +7,7 @@ from .model import Product
 
 from .schema import ProductResponse, ProductCreateRequest, ProductUpdateRequest
 
-from .repository import find_all, find_by_id, save, delete
+from .repository import find_all, find_by_id, save
 
 from app.suppliers.repository import find_by_id as find_supplier_by_id
 from app.categories.repository import find_by_id as find_category_by_id
