@@ -49,7 +49,13 @@ def map_product(product: Product):
         subcategory_name=product.subcategory.name,
         product_type_id=product.product_type_id,
         product_type_name=product.product_type.name,
-        price=product.price,
+        brand_id=product.brand_id,
+        brand_name=product.brand.name,
+        uom_id=product.uom_id,
+        uom_code=product.uom.code,
+        uom_name=product.uom.name,
+        purchase_price=product.purchase_price,
+        selling_price=product.selling_price,
         created_by=product.created_by,
         updated_by=product.updated_by,
         deactivated_by=product.deactivated_by,
@@ -145,6 +151,8 @@ def create_product(db: Session, request: ProductCreateRequest, current_user_id: 
         request.category_id,
         request.subcategory_id,
         request.product_type_id,
+        request.brand_id,
+        request.uom_id,
     )
 
     product = Product(
@@ -154,7 +162,10 @@ def create_product(db: Session, request: ProductCreateRequest, current_user_id: 
         category_id=request.category_id,
         subcategory_id=request.subcategory_id,
         product_type_id=request.product_type_id,
-        price=request.price,
+        brand_id=request.brand_id,
+        uom_id=request.uom_id,
+        purchase_price=request.purchase_price,
+        selling_price=request.selling_price,
         is_active=True,
         created_by=current_user_id,
     )
@@ -189,15 +200,24 @@ def update_product(
         request.category_id,
         request.subcategory_id,
         request.product_type_id,
+        request.brand_id,
+        request.uom_id,
     )
 
     product.name = request.name  # Similar to product.setName(...);
     product.sku = request.sku
+    product.description = request.description
+
     product.supplier_id = request.supplier_id
     product.category_id = request.category_id
     product.subcategory_id = request.subcategory_id
     product.product_type_id = request.product_type_id
-    product.price = request.price
+
+    product.brand_id = request.brand_id
+    product.uom_id = request.uom_id
+
+    product.purchase_price = request.purchase_price
+    product.selling_price = request.selling_price
 
     product.updated_by = current_user_id
     product.updated_at = datetime.now(timezone.utc)

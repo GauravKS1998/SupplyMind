@@ -14,6 +14,8 @@ class Product(Base):
 
     sku: Mapped[str] = mapped_column(String(255), unique=True)
 
+    description: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+
     supplier_id: Mapped[int] = mapped_column(ForeignKey("suppliers.id"))
 
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"))
@@ -22,7 +24,13 @@ class Product(Base):
 
     product_type_id: Mapped[int] = mapped_column(ForeignKey("product_types.id"))
 
-    price: Mapped[float] = mapped_column(Float)
+    brand_id: Mapped[int] = mapped_column(ForeignKey("brands.id"))
+
+    uom_id: Mapped[int] = mapped_column(ForeignKey("units_of_measure.id"))
+
+    purchase_price: Mapped[float] = mapped_column(Float)
+
+    selling_price: Mapped[float] = mapped_column(Float)
 
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
@@ -53,3 +61,6 @@ class Product(Base):
     category = relationship("Category")
     subcategory = relationship("SubCategory")
     product_type = relationship("ProductType")
+
+    brand = relationship("Brand")
+    uom = relationship("UnitOfMeasure")

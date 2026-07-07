@@ -8,6 +8,8 @@ from app.auth.model import User
 from app.categories.model import Category
 from app.subcategories.model import SubCategory
 from app.product_types.model import ProductType
+from app.brands.model import Brand
+from app.units_of_measure.model import UnitOfMeasure
 from app.products.model import Product
 from app.suppliers.model import Supplier
 from app.warehouses.model import Warehouse
@@ -26,8 +28,8 @@ from app.warehouses.router import router as warehouse_router
 from app.inventories.router import router as inventory_router
 from app.stock_transfers.router import router as stock_transfer_router
 from app.purchase_orders.router import router as purchase_order_router
-from app.forecasting.router import router as forecasting_router
 from app.sales_orders.router import router as sales_order_router
+from app.forecasting.router import router as forecasting_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -65,6 +67,6 @@ app.include_router(
     purchase_order_router, prefix="/purchase-orders", tags=["Purchase Orders"]
 )
 
-app.include_router(forecasting_router, prefix="/forecasting", tags=["Forecasting"])
-
 app.include_router(sales_order_router, prefix="/sales-orders", tags=["Sales Orders"])
+
+app.include_router(forecasting_router, prefix="/forecasting", tags=["Forecasting"])

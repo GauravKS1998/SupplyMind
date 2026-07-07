@@ -4,12 +4,18 @@ from app.suppliers.repository import find_by_id as find_supplier_by_id
 from app.categories.repository import find_by_id as find_category_by_id
 from app.subcategories.repository import find_by_id as find_subcategory_by_id
 from app.product_types.repository import find_by_id as find_product_type_by_id
+from app.brands.repository import find_by_id as find_brand_by_id
+from app.units_of_measure.repository import (
+    find_by_id as find_uom_by_id,
+)
 
 from .exceptions import (
     SupplierNotFoundException,
     CategoryNotFoundException,
     SubCategoryNotFoundException,
     ProductTypeNotFoundException,
+    BrandNotFoundException,
+    UnitOfMeasureNotFoundException,
 )
 
 
@@ -19,6 +25,8 @@ def validate_product_hierarchy(
     category_id: int,
     subcategory_id: int,
     product_type_id: int,
+    brand_id: int,
+    uom_id: int,
 ):
     supplier = find_supplier_by_id(db, supplier_id)
 
@@ -59,3 +67,28 @@ def validate_product_hierarchy(
         raise ProductTypeNotFoundException(
             "Product Type does not belong to SubCategory"
         )
+
+    brand = find_brand_by_id(db, brand_id)
+
+    if not brand:
+        raise BrandNotFoundException("Brand not found")
+
+    if not brand.is_active:
+        raise BrandNotFoundException("Brand is inactive")
+
+    uom = find_uom_by_id(db, uom_id)
+
+    if not uom:
+        raise UnitOfMeasureNotFoundException("Unit of Measure not found")
+
+    if not uom.is_active:
+        raise UnitOfMeasureNotFoundException("Unit of Measure is inactive")
+
+    return (
+        supplier,
+        category,
+        subcategory,
+        product_type,
+        brand,
+        uom,
+    )

@@ -20,3 +20,11 @@ class ProductTypeNotFoundException(Exception):
 
 class SupplierNotFoundException(Exception):
     pass
+
+
+class BrandNotFoundException(Exception):
+    pass
+
+
+class UnitOfMeasureNotFoundException(Exception):
+    pass
