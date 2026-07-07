@@ -14,6 +14,18 @@ def find_by_sku(db: Session, sku: str):
     return db.query(Product).filter(Product.sku == sku).first()
 
 
+def find_by_barcode(db: Session, barcode: str):
+    return db.query(Product).filter(Product.barcode == barcode).first()
+
+
+def find_by_brand_id(db: Session, brand_id: int):
+    return db.query(Product).filter(Product.brand_id == brand_id).all()
+
+
+def find_by_uom_id(db: Session, uom_id: int):
+    return db.query(Product).filter(Product.uom_id == uom_id).all()
+
+
 def find_by_supplier_id(db: Session, supplier_id: int):
     return (
         db.query(Product)

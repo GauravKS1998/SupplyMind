@@ -16,6 +16,8 @@ class Product(Base):
 
     description: Mapped[str | None] = mapped_column(String(1000), nullable=True)
 
+    barcode: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+
     supplier_id: Mapped[int] = mapped_column(ForeignKey("suppliers.id"))
 
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"))

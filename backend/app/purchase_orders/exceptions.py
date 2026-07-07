@@ -38,9 +38,5 @@ class PurchaseOrderCannotBeCancelledException(PurchaseOrderException):
     pass
 
 
-class InventoryNotFoundException(PurchaseOrderException):
-    pass
-
-
 class PurchaseOrderFailException(PurchaseOrderException):
     pass

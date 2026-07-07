@@ -1,0 +1,2 @@
+class UnitOfMeasureNotFoundException(Exception):
+    pass

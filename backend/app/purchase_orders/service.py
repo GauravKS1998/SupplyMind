@@ -21,7 +21,6 @@ from app.inventories.model import Inventory
 from .enums import PurchaseOrderStatus
 
 from .exceptions import (
-    InventoryNotFoundException,
     PurchaseOrderAlreadyExistsException,
     PurchaseOrderCannotBeCancelledException,
     PurchaseOrderFailException,
@@ -33,6 +32,7 @@ from .exceptions import (
     PurchaseOrderNotSubmittedException,
     PurchaseOrderNotFoundException,
 )
+from app.inventories.exceptions import InventoryNotFoundException
 
 
 def map_purchase_order_response(po):

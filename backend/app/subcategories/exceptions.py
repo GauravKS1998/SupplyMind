@@ -4,7 +4,3 @@ class SubCategoryNotFoundException(Exception):
 
 class SubCategoryAlreadyExistsException(Exception):
     pass
-
-
-class CategoryNotFoundException(Exception):
-    pass

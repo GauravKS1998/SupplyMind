@@ -1,4 +1,4 @@
-from sqlalchemy import Date, Integer, Boolean, ForeignKey, String, DateTime
+from sqlalchemy import Date, Integer, Boolean, ForeignKey, String, DateTime, Float
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -23,15 +23,21 @@ class Inventory(Base):
 
     available_quantity: Mapped[int] = mapped_column(Integer)
 
+    unit_cost: Mapped[float] = mapped_column(Float)
+
     reorder_level: Mapped[int] = mapped_column(Integer)
 
     reorder_quantity: Mapped[int] = mapped_column(Integer)
 
     batch_number: Mapped[str] = mapped_column(String(100))
 
+    manufacturing_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+
     expiry_date: Mapped[date | None] = mapped_column(Date, nullable=True)
 
-    last_stocked_at: Mapped[datetime] = mapped_column(
+    storage_location: Mapped[str | None] = mapped_column(String(100), nullable=True)
+
+    last_movement_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
 

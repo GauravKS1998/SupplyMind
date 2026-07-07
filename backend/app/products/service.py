@@ -10,11 +10,14 @@ from .repository import (
     find_all,
     find_by_id,
     find_by_sku,
+    find_by_barcode,
     save,
     find_by_supplier_id,
     find_by_category_id,
     find_by_subcategory_id,
     find_by_product_type_id,
+    find_by_brand_id,
+    find_by_uom_id,
     find_active,
     find_inactive,
 )
@@ -23,15 +26,22 @@ from app.suppliers.repository import find_by_id as find_supplier_by_id
 from app.categories.repository import find_by_id as find_category_by_id
 from app.subcategories.repository import find_by_id as find_subcategory_by_id
 from app.product_types.repository import find_by_id as find_product_type_by_id
+from app.brands.repository import find_by_id as find_brand_by_id
+from app.units_of_measure.repository import (
+    find_by_id as find_uom_by_id,
+)
 
 from .exceptions import (
-    CategoryNotFoundException,
     ProductNotFoundException,
     ProductAlreadyExistsException,
-    ProductTypeNotFoundException,
-    SubCategoryNotFoundException,
-    SupplierNotFoundException,
 )
+
+from app.categories.exceptions import CategoryNotFoundException
+from app.subcategories.exceptions import SubCategoryNotFoundException
+from app.product_types.exceptions import ProductTypeNotFoundException
+from app.suppliers.exceptions import SupplierNotFoundException
+from app.brands.exceptions import BrandNotFoundException
+from app.units_of_measure.exceptions import UnitOfMeasureNotFoundException
 
 from .validators import validate_product_hierarchy
 
@@ -41,6 +51,8 @@ def map_product(product: Product):
         id=product.id,
         name=product.name,
         sku=product.sku,
+        description=product.description,
+        barcode=product.barcode,
         supplier_id=product.supplier_id,
         supplier_name=product.supplier.name,
         category_id=product.category_id,
@@ -139,6 +151,34 @@ def get_products_by_product_type_id(db: Session, product_type_id: int):
     return [map_product(product) for product in products]
 
 
+def get_products_by_brand_id(db: Session, brand_id: int):
+    brand = find_brand_by_id(db, brand_id)
+
+    if not brand:
+        raise BrandNotFoundException("Brand not found")
+
+    if not brand.is_active:
+        raise BrandNotFoundException("Brand is inactive")
+
+    products = find_by_brand_id(db, brand_id)
+
+    return [map_product(product) for product in products]
+
+
+def get_products_by_uom_id(db: Session, uom_id: int):
+    uom = find_uom_by_id(db, uom_id)
+
+    if not uom:
+        raise UnitOfMeasureNotFoundException("Unit of Measure not found")
+
+    if not uom.is_active:
+        raise UnitOfMeasureNotFoundException("Unit of Measure is inactive")
+
+    products = find_by_uom_id(db, uom_id)
+
+    return [map_product(product) for product in products]
+
+
 def create_product(db: Session, request: ProductCreateRequest, current_user_id: int):
     exists = find_by_sku(db, request.sku)
 
@@ -157,7 +197,9 @@ def create_product(db: Session, request: ProductCreateRequest, current_user_id: 
 
     product = Product(
         name=request.name,
+        description=request.description,
         sku=request.sku,
+        barcode=request.barcode,
         supplier_id=request.supplier_id,
         category_id=request.category_id,
         subcategory_id=request.subcategory_id,
@@ -166,8 +208,8 @@ def create_product(db: Session, request: ProductCreateRequest, current_user_id: 
         uom_id=request.uom_id,
         purchase_price=request.purchase_price,
         selling_price=request.selling_price,
-        is_active=True,
         created_by=current_user_id,
+        is_active=True,
     )
 
     saved_product = save(db, product)
@@ -204,9 +246,10 @@ def update_product(
         request.uom_id,
     )
 
-    product.name = request.name  # Similar to product.setName(...);
-    product.sku = request.sku
+    product.name = request.name
     product.description = request.description
+    product.sku = request.sku
+    product.barcode = request.barcode
 
     product.supplier_id = request.supplier_id
     product.category_id = request.category_id

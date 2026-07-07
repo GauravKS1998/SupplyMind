@@ -4,7 +4,3 @@ class ProductTypeNotFoundException(Exception):
 
 class ProductTypeAlreadyExistsException(Exception):
     pass
-
-
-class SubCategoryNotFoundException(Exception):
-    pass

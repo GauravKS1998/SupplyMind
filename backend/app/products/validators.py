@@ -9,14 +9,12 @@ from app.units_of_measure.repository import (
     find_by_id as find_uom_by_id,
 )
 
-from .exceptions import (
-    SupplierNotFoundException,
-    CategoryNotFoundException,
-    SubCategoryNotFoundException,
-    ProductTypeNotFoundException,
-    BrandNotFoundException,
-    UnitOfMeasureNotFoundException,
-)
+from app.categories.exceptions import CategoryNotFoundException
+from app.subcategories.exceptions import SubCategoryNotFoundException
+from app.product_types.exceptions import ProductTypeNotFoundException
+from app.suppliers.exceptions import SupplierNotFoundException
+from app.brands.exceptions import BrandNotFoundException
+from app.units_of_measure.exceptions import UnitOfMeasureNotFoundException
 
 
 def validate_product_hierarchy(

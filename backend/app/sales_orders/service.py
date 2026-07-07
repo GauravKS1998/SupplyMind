@@ -3,10 +3,8 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timezone
 
 from app.sales_orders.enums import SalesOrderStatus
-from app.sales_orders.exceptions import (
+from .exceptions import (
     InsufficientStockException,
-    InventoryNotFoundException,
-    ProductNotFoundException,
     SalesOrderAlreadyExistsException,
     SalesOrderCannotBeCancelledException,
     SalesOrderFailException,
@@ -17,6 +15,8 @@ from app.sales_orders.exceptions import (
     SalesOrderNotFoundException,
     SalesOrderNotReservedException,
 )
+from app.products.exceptions import ProductNotFoundException
+from app.inventories.exceptions import InventoryNotFoundException
 
 from .model import SalesOrder
 from .schema import SalesOrderCreateRequest, SalesOrderResponse

@@ -34,14 +34,6 @@ class SalesOrderCannotBeCancelledException(SalesOrderException):
     pass
 
 
-class ProductNotFoundException(SalesOrderException):
-    pass
-
-
-class InventoryNotFoundException(SalesOrderException):
-    pass
-
-
 class InsufficientStockException(SalesOrderException):
     pass
 

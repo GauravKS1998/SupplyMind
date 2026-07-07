@@ -4,8 +4,9 @@ from datetime import datetime
 
 class ProductCreateRequest(BaseModel):
     name: str
+    description: str | None = None
     sku: str
-    description: str
+    barcode: str | None = None
 
     supplier_id: int
     category_id: int
@@ -21,8 +22,9 @@ class ProductCreateRequest(BaseModel):
 
 class ProductUpdateRequest(BaseModel):
     name: str
+    description: str | None = None
     sku: str
-    description: str
+    barcode: str | None = None
 
     supplier_id: int
     category_id: int
@@ -38,9 +40,11 @@ class ProductUpdateRequest(BaseModel):
 
 class ProductResponse(BaseModel):
     id: int
+
     name: str
-    sku: str
     description: str | None
+    sku: str
+    barcode: str | None
 
     supplier_id: int
     supplier_name: str

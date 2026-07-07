@@ -15,6 +15,8 @@ from .service import (
     get_products_by_category_id,
     get_products_by_subcategory_id,
     get_products_by_product_type_id,
+    get_products_by_brand_id,
+    get_products_by_uom_id,
     create_product,
     update_product,
     deactivate_product,
@@ -167,6 +169,52 @@ def get_product_by_subcategory(subcategory_id: int, db: Session = Depends(get_db
 )
 def get_product_by_product_type(product_type_id: int, db: Session = Depends(get_db)):
     return get_products_by_product_type_id(db, product_type_id)
+
+
+@router.get(
+    "/brand/{brand_id}",
+    dependencies=[
+        Depends(
+            require_roles(
+                UserRole.ADMIN,
+                UserRole.SUPER_ADMIN,
+                UserRole.PROCUREMENT_MANAGER,
+                UserRole.WAREHOUSE_MANAGER,
+                UserRole.WAREHOUSE_STAFF,
+                UserRole.SALES_MANAGER,
+                UserRole.INVENTORY_ANALYST,
+            )
+        )
+    ],
+)
+def get_products_by_brand(
+    brand_id: int,
+    db: Session = Depends(get_db),
+):
+    return get_products_by_brand_id(db, brand_id)
+
+
+@router.get(
+    "/uom/{uom_id}",
+    dependencies=[
+        Depends(
+            require_roles(
+                UserRole.ADMIN,
+                UserRole.SUPER_ADMIN,
+                UserRole.PROCUREMENT_MANAGER,
+                UserRole.WAREHOUSE_MANAGER,
+                UserRole.WAREHOUSE_STAFF,
+                UserRole.SALES_MANAGER,
+                UserRole.INVENTORY_ANALYST,
+            )
+        )
+    ],
+)
+def get_products_by_uom(
+    uom_id: int,
+    db: Session = Depends(get_db),
+):
+    return get_products_by_uom_id(db, uom_id)
 
 
 @router.get(

@@ -25,8 +25,8 @@ from app.categories.repository import find_by_id as find_category_by_id
 from .exceptions import (
     SubCategoryNotFoundException,
     SubCategoryAlreadyExistsException,
-    CategoryNotFoundException,
 )
+from app.categories.exceptions import CategoryNotFoundException
 
 
 def map_subcategory(subcategory):
