@@ -39,12 +39,16 @@ class ProductUpdateRequest(BaseModel):
 
 
 class ProductResponse(BaseModel):
+
     id: int
 
     name: str
-    description: str | None
+
     sku: str
+
     barcode: str | None
+
+    description: str | None
 
     supplier_id: int
     supplier_name: str
@@ -61,20 +65,24 @@ class ProductResponse(BaseModel):
     brand_id: int
     brand_name: str
 
-    uom_id: int
-    uom_code: str
-    uom_name: str
+    unit_of_measure_id: int
+    unit_of_measure_code: str
+    unit_of_measure_name: str
 
     purchase_price: float
+
     selling_price: float
 
     is_active: bool
 
     created_by: int
+
     updated_by: int | None
 
     deactivated_by: int | None
+
     reactivated_by: int | None
 
     created_at: datetime
+
     updated_at: datetime | None
