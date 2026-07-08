@@ -1,6 +1,12 @@
-class SubCategoryNotFoundException(Exception):
+from app.exceptions.common import (
+    NotFoundException,
+    AlreadyExistsException,
+)
+
+
+class SubCategoryNotFoundException(NotFoundException):
     pass
 
 
-class SubCategoryAlreadyExistsException(Exception):
+class SubCategoryAlreadyExistsException(AlreadyExistsException):
     pass

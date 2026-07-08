@@ -1,38 +1,41 @@
-class StockTransfersException(Exception):
+from app.exceptions.common import (
+    NotFoundException,
+    BusinessException,
+    InternalServerException,
+)
+
+
+class InvalidTransferRequestException(BusinessException):
     pass
 
 
-class InvalidTransferRequestException(StockTransfersException):
+class SourceInventoryNotFoundException(NotFoundException):
     pass
 
 
-class SourceInventoryNotFoundException(StockTransfersException):
+class DestinationInventoryNotFoundException(NotFoundException):
     pass
 
 
-class DestinationInventoryNotFoundException(StockTransfersException):
+class InsufficientStockException(BusinessException):
     pass
 
 
-class InsufficientStockException(StockTransfersException):
+class TransferFailedException(InternalServerException):
     pass
 
 
-class TransferFailedException(StockTransfersException):
+class TransferNotFoundException(NotFoundException):
     pass
 
 
-class TransferNotFoundException(StockTransfersException):
+class TransferNotInitiatedException(BusinessException):
     pass
 
 
-class TransferNotInitiatedException(StockTransfersException):
+class TransferNotApprovedException(BusinessException):
     pass
 
 
-class TransferNotApprovedException(StockTransfersException):
-    pass
-
-
-class TransferNotInTransitException(StockTransfersException):
+class TransferNotInTransitException(BusinessException):
     pass

@@ -12,17 +12,25 @@ class Brand(Base):
 
     name: Mapped[str] = mapped_column(String(100), unique=True)
 
+    description: Mapped[str | None] = mapped_column(String(255), nullable=True)
+
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
     created_by: Mapped[int] = mapped_column(ForeignKey("users.id"))
+
     updated_by: Mapped[int | None] = mapped_column(
-        ForeignKey("users.id"), nullable=True
+        ForeignKey("users.id"),
+        nullable=True,
     )
+
     deactivated_by: Mapped[int | None] = mapped_column(
-        ForeignKey("users.id"), nullable=True
+        ForeignKey("users.id"),
+        nullable=True,
     )
+
     reactivated_by: Mapped[int | None] = mapped_column(
-        ForeignKey("users.id"), nullable=True
+        ForeignKey("users.id"),
+        nullable=True,
     )
 
     created_at: Mapped[datetime] = mapped_column(

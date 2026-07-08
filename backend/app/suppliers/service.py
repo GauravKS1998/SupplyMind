@@ -15,7 +15,7 @@ from .repository import (
     find_all_inactive,
 )
 
-from .exceptions import SupplierNotFoundException, UnauthorizedAccessException
+from .exceptions import SupplierNotFoundException, AccessDeniedException
 
 
 def create_supplier(db: Session, request: SupplierCreateRequest):
@@ -35,7 +35,7 @@ def update_supplier(
         raise SupplierNotFoundException("Supplier not found")
 
     if supplier.user_id != current_user_id:
-        raise UnauthorizedAccessException("Unauthorized access")
+        raise AccessDeniedException("Unauthorized access")
 
     for key, value in request.model_dump().items():
         setattr(supplier, key, value)

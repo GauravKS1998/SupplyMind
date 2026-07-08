@@ -1,10 +1,9 @@
-class SupplierException(Exception):
+from app.exceptions.common import NotFoundException, ForbiddenException
+
+
+class SupplierNotFoundException(NotFoundException):
     pass
 
 
-class SupplierNotFoundException(SupplierException):
-    pass
-
-
-class UnauthorizedAccessException(SupplierException):
+class AccessDeniedException(ForbiddenException):
     pass

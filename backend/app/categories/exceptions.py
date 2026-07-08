@@ -1,6 +1,12 @@
-class CategoryNotFoundException(Exception):
+from app.exceptions.common import (
+    NotFoundException,
+    AlreadyExistsException,
+)
+
+
+class CategoryNotFoundException(NotFoundException):
     pass
 
 
-class CategoryAlreadyExistsException(Exception):
+class CategoryAlreadyExistsException(AlreadyExistsException):
     pass

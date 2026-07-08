@@ -1,10 +1,17 @@
-class CustomerNotFoundException(Exception):
+from app.exceptions.common import (
+    NotFoundException,
+    AlreadyExistsException,
+    InternalServerException,
+)
+
+
+class CustomerNotFoundException(NotFoundException):
     pass
 
 
-class CustomerAlreadyExistsException(Exception):
+class CustomerAlreadyExistsException(AlreadyExistsException):
     pass
 
 
-class CustomerFailException(Exception):
+class CustomerFailException(InternalServerException):
     pass

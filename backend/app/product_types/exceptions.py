@@ -1,6 +1,12 @@
-class ProductTypeNotFoundException(Exception):
+from app.exceptions.common import (
+    NotFoundException,
+    AlreadyExistsException,
+)
+
+
+class ProductTypeNotFoundException(NotFoundException):
     pass
 
 
-class ProductTypeAlreadyExistsException(Exception):
+class ProductTypeAlreadyExistsException(AlreadyExistsException):
     pass

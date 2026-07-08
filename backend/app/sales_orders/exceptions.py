@@ -1,42 +1,46 @@
-class SalesOrderException(Exception):
+from app.exceptions.common import (
+    NotFoundException,
+    AlreadyExistsException,
+    BusinessException,
+    InternalServerException,
+)
+
+
+class SalesOrderAlreadyExistsException(AlreadyExistsException):
     pass
 
 
-class SalesOrderAlreadyExistsException(SalesOrderException):
+class SalesOrderNotFoundException(NotFoundException):
     pass
 
 
-class SalesOrderNotFoundException(SalesOrderException):
+class SalesOrderNotDraftedException(BusinessException):
     pass
 
 
-class SalesOrderNotDraftedException(SalesOrderException):
+class SalesOrderNotConfirmedException(BusinessException):
     pass
 
 
-class SalesOrderNotConfirmedException(SalesOrderException):
+class SalesOrderNotReservedException(BusinessException):
     pass
 
 
-class SalesOrderNotReservedException(SalesOrderException):
+class SalesOrderNotDispatchedException(BusinessException):
     pass
 
 
-class SalesOrderNotDispatchedException(SalesOrderException):
+class SalesOrderNotDeliveredException(BusinessException):
     pass
 
 
-class SalesOrderNotDeliveredException(SalesOrderException):
+class SalesOrderCannotBeCancelledException(BusinessException):
     pass
 
 
-class SalesOrderCannotBeCancelledException(SalesOrderException):
+class InsufficientStockException(BusinessException):
     pass
 
 
-class InsufficientStockException(SalesOrderException):
-    pass
-
-
-class SalesOrderFailException(SalesOrderException):
+class SalesOrderFailException(InternalServerException):
     pass

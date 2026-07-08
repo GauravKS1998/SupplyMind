@@ -31,9 +31,16 @@ from app.purchase_orders.router import router as purchase_order_router
 from app.sales_orders.router import router as sales_order_router
 from app.forecasting.router import router as forecasting_router
 
+from app.middleware import RequestIDMiddleware
+from app.exceptions.handlers import register_exception_handlers
+
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+app.add_middleware(RequestIDMiddleware)
+
+register_exception_handlers(app)
 
 app.add_middleware(
     CORSMiddleware,

@@ -1,42 +1,46 @@
-class PurchaseOrderException(Exception):
+from app.exceptions.common import (
+    NotFoundException,
+    AlreadyExistsException,
+    BusinessException,
+    InternalServerException,
+)
+
+
+class PurchaseOrderAlreadyExistsException(AlreadyExistsException):
     pass
 
 
-class PurchaseOrderAlreadyExistsException(PurchaseOrderException):
+class PurchaseOrderNotFoundException(NotFoundException):
     pass
 
 
-class PurchaseOrderNotFoundException(PurchaseOrderException):
+class PurchaseOrderNotDraftedException(BusinessException):
     pass
 
 
-class PurchaseOrderNotDraftedException(PurchaseOrderException):
+class PurchaseOrderNotSubmittedException(BusinessException):
     pass
 
 
-class PurchaseOrderNotSubmittedException(PurchaseOrderException):
+class PurchaseOrderNotApprovedException(BusinessException):
     pass
 
 
-class PurchaseOrderNotApprovedException(PurchaseOrderException):
+class PurchaseOrderNotOrderedException(BusinessException):
     pass
 
 
-class PurchaseOrderNotOrderedException(PurchaseOrderException):
+class PurchaseOrderNotInTransitException(BusinessException):
     pass
 
 
-class PurchaseOrderNotInTransitException(PurchaseOrderException):
+class PurchaseOrderNotReceivedException(BusinessException):
     pass
 
 
-class PurchaseOrderNotReceivedException(PurchaseOrderException):
+class PurchaseOrderCannotBeCancelledException(BusinessException):
     pass
 
 
-class PurchaseOrderCannotBeCancelledException(PurchaseOrderException):
-    pass
-
-
-class PurchaseOrderFailException(PurchaseOrderException):
+class PurchaseOrderFailException(InternalServerException):
     pass

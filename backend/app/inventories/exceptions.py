@@ -1,10 +1,12 @@
-class InventoryException(Exception):
+from app.exceptions.common import (
+    NotFoundException,
+    AlreadyExistsException,
+)
+
+
+class InventoryNotFoundException(NotFoundException):
     pass
 
 
-class InventoryNotFoundException(InventoryException):
-    pass
-
-
-class InventoryAlreadyExistsException(InventoryException):
+class InventoryAlreadyExistsException(AlreadyExistsException):
     pass

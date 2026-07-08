@@ -1,10 +1,12 @@
-class WarehouseException(Exception):
+from app.exceptions.common import (
+    NotFoundException,
+    AlreadyExistsException,
+)
+
+
+class WarehouseAlreadyExistsException(AlreadyExistsException):
     pass
 
 
-class WarehouseAlreadyExistsException(WarehouseException):
-    pass
-
-
-class WarehouseNotFoundException(WarehouseException):
+class WarehouseNotFoundException(NotFoundException):
     pass
