@@ -45,6 +45,8 @@ from app.units_of_measure.exceptions import UnitOfMeasureNotFoundException
 
 from .validators import validate_product_hierarchy
 
+from app.logging.logger import logger
+
 
 def map_product(product: Product):
     return ProductResponse(
@@ -217,6 +219,8 @@ def create_product(db: Session, request: ProductCreateRequest, current_user_id: 
     db.commit()
     db.refresh(saved_product)
 
+    logger.info(f"Product {saved_product.id} created")
+
     return map_product(saved_product)
 
 
@@ -268,6 +272,8 @@ def update_product(
     db.commit()
     db.refresh(product)
 
+    logger.info(f"Product {product.id} updated")
+
     return map_product(product)
 
 
@@ -288,6 +294,8 @@ def deactivate_product(db: Session, product_id: int, current_user_id: int):
     db.commit()
     db.refresh(product)
 
+    logger.info(f"Product {product.id} deactivated")
+
     return {"message": "Product deactivated successfully"}
 
 
@@ -307,5 +315,7 @@ def reactivate_product(db: Session, product_id: int, current_user_id: int):
 
     db.commit()
     db.refresh(product)
+
+    logger.info(f"Product {product.id} reactivated")
 
     return {"message": "Product reactivated successfully"}

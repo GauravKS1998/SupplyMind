@@ -24,6 +24,8 @@ from .exceptions import (
     TransferNotInTransitException,
 )
 
+from app.logging.logger import logger
+
 
 def initiate_transfer(db: Session, request: StockTransferRequest, current_user_id: int):
     if request.source_warehouse_id == request.destination_warehouse_id:
@@ -64,6 +66,8 @@ def initiate_transfer(db: Session, request: StockTransferRequest, current_user_i
         db.commit()
         db.refresh(saved_transfer)
 
+        logger.info(f"Stock transfer {saved_transfer.id} initiated")
+
         return StockTransferResponse(
             id=saved_transfer.id,
             product_id=saved_transfer.product_id,
@@ -103,6 +107,8 @@ def approve_transfer(db: Session, transfer_id: int, current_user_id: int):
         db.commit()
         db.refresh(transfer)
 
+        logger.info(f"Stock transfer {transfer.id} approved")
+
         return {"message": "Transfer approved successfully"}
 
     except Exception:
@@ -135,6 +141,8 @@ def reject_transfer(db: Session, transfer_id: int, current_user_id: int):
         db.commit()
         db.refresh(transfer)
 
+        logger.info(f"Stock transfer {transfer.id} rejected")
+
         return {"message": "Transfer rejected successfully"}
 
     except Exception:
@@ -160,6 +168,8 @@ def mark_in_transit(db: Session, transfer_id: int, current_user_id: int):
 
         db.commit()
         db.refresh(transfer)
+
+        logger.info(f"Stock transfer {transfer.id} in transit")
 
         return {"message": "Transfer is now in transit"}
 
@@ -203,6 +213,8 @@ def complete_transfer(db: Session, transfer_id: int, current_user_id: int):
         db.commit()
         db.refresh(transfer)
 
+        logger.info(f"Stock transfer {transfer.id} completed")
+
         return {"message": "Transfer completed successfully"}
 
     except Exception:
@@ -236,6 +248,8 @@ def cancel_transfer(db: Session, transfer_id: int, current_user_id: int):
 
         db.commit()
         db.refresh(transfer)
+
+        logger.info(f"Stock transfer {transfer.id} cancelled")
 
         return {"message": "Transfer cancelled successfully"}
 

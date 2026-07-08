@@ -34,6 +34,8 @@ from .exceptions import (
 )
 from app.inventories.exceptions import InventoryNotFoundException
 
+from app.logging.logger import logger
+
 
 def map_purchase_order_response(po):
     return PurchaseOrderResponse(
@@ -94,6 +96,8 @@ def create_draft_po(
 
         saved_po = find_by_id(db, saved_po.id)
 
+        logger.info(f"Purchase order draft {saved_po.id} created")
+
         return map_purchase_order_response(saved_po)
 
     except Exception:
@@ -117,6 +121,8 @@ def submit_po(db: Session, po_id: int, current_user_id: int):
 
         db.commit()
         db.refresh(po)
+
+        logger.info(f"Purchase order {po.id} submitted")
 
         return {"message": "Purchase order submitted successfully"}
 
@@ -143,6 +149,8 @@ def approve_po(db: Session, po_id: int, current_user_id: int):
         db.commit()
         db.refresh(po)
 
+        logger.info(f"Purchase order {po.id} approved")
+
         return {"message": "Purchase order approved successfully"}
 
     except Exception:
@@ -167,6 +175,8 @@ def reject_po(db: Session, po_id: int, current_user_id: int):
 
         db.commit()
         db.refresh(po)
+
+        logger.info(f"Purchase order {po.id} rejected")
 
         return {"message": "Purchase order rejected successfully"}
 
@@ -194,6 +204,8 @@ def mark_ordered(db: Session, po_id: int, current_user_id: int):
         db.commit()
         db.refresh(po)
 
+        logger.info(f"Purchase order {po.id} ordered")
+
         return {"message": "Purchase order marked as ordered"}
 
     except Exception:
@@ -217,6 +229,8 @@ def mark_in_transit(db: Session, po_id: int, current_user_id: int):
 
         db.commit()
         db.refresh(po)
+
+        logger.info(f"Purchase order {po.id} in transit")
 
         return {"message": "Purchase order is now in transit"}
 
@@ -255,6 +269,8 @@ def receive_po(db: Session, po_id: int, current_user_id: int):
         db.commit()
         db.refresh(po)
 
+        logger.info(f"Purchase order {po.id} received")
+
         return {"message": "Purchase order received successfully"}
 
     except Exception:
@@ -279,6 +295,8 @@ def close_po(db: Session, po_id: int, current_user_id: int):
 
         db.commit()
         db.refresh(po)
+
+        logger.info(f"Purchase order {po.id} closed")
 
         return {"message": "Purchase order closed successfully"}
 
@@ -311,7 +329,9 @@ def cancel_po(db: Session, po_id: int, current_user_id: int):
         db.commit()
         db.refresh(po)
 
-        return {"message": "Purchase order cancelled successfully"}
+        logger.info(f"Purchase order {po.id} cancelled successfully")
+
+        return {"message": "Purchase order cancelled"}
 
     except Exception:
         db.rollback()

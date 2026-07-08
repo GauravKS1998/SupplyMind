@@ -1,10 +1,11 @@
 from datetime import datetime, timezone
-import uuid
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from .base_exception import BaseAPIException
+
+from app.logging.logger import logger
 
 
 def register_exception_handlers(app: FastAPI):
@@ -31,7 +32,7 @@ def register_exception_handlers(app: FastAPI):
         exc: Exception,
     ):
 
-        print(f"[{request.state.request_id}] {exc}")
+        logger.exception(f"[{request.state.request_id}] {exc}")
 
         return JSONResponse(
             status_code=500,

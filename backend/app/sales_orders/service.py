@@ -26,6 +26,8 @@ from .repository import save, find_all, find_by_id, find_by_so_number
 from app.products.repository import find_by_id as find_product_by_id
 from app.inventories.repository import find_by_product_and_warehouse
 
+from app.logging.logger import logger
+
 
 def map_sales_order(sales_order: SalesOrder):
     return SalesOrderResponse(
@@ -83,6 +85,8 @@ def create_draft_sales_order(
         db.commit()
         db.refresh(saved_order)
 
+        logger.info(f"Sales order {saved_order.id} drafted")
+
         return map_sales_order(saved_order)
 
     except Exception:
@@ -114,6 +118,8 @@ def confirm_sales_order(db: Session, sales_order_id: int, current_user_id: int):
 
         db.commit()
         db.refresh(sales_order)
+
+        logger.info(f"Sales order {sales_order.id} confirmed")
 
         return {"message": "Sales order confirmed"}
 
@@ -149,6 +155,8 @@ def reserve_sales_order(db: Session, sales_order_id: int, current_user_id: int):
         db.commit()
         db.refresh(sales_order)
 
+        logger.info(f"Sales order {sales_order.id} reserved")
+
         return {"message": "Sales order reserved"}
 
     except Exception:
@@ -181,6 +189,8 @@ def dispatch_sales_order(db: Session, sales_order_id: int, current_user_id: int)
         db.commit()
         db.refresh(sales_order)
 
+        logger.info(f"Sales order {sales_order.id} dispatched")
+
         return {"message": "Sales order dispatched"}
 
     except Exception:
@@ -207,6 +217,8 @@ def deliver_sales_order(db: Session, sales_order_id: int, current_user_id: int):
         db.commit()
         db.refresh(sales_order)
 
+        logger.info(f"Sales order {sales_order.id} delivered")
+
         return {"message": "Sales order delivered"}
 
     except Exception:
@@ -232,6 +244,8 @@ def complete_sales_order(db: Session, sales_order_id: int, current_user_id: int)
 
         db.commit()
         db.refresh(sales_order)
+
+        logger.info(f"Sales order {sales_order.id} completed")
 
         return {"message": "Sales order completed"}
 
@@ -275,6 +289,8 @@ def cancel_sales_order(db: Session, sales_order_id: int, current_user_id: int):
         db.commit()
         db.refresh(sales_order)
 
+        logger.info(f"Sales order {sales_order.id} cancelled")
+
         return {"message": "Sales order cancelled successfully"}
 
     except Exception:
@@ -310,6 +326,8 @@ def return_sales_order(db: Session, sales_order_id: int, current_user_id: int):
 
         db.commit()
         db.refresh(sales_order)
+
+        logger.info(f"Sales order {sales_order.id} returned")
 
         return {"message": "Sales order returned"}
 

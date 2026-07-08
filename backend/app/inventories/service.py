@@ -13,6 +13,8 @@ from app.warehouses.repository import find_by_id as find_warehouse_by_id
 
 from .exceptions import InventoryNotFoundException, InventoryAlreadyExistsException
 
+from app.logging.logger import logger
+
 
 def map_inventory_response(inventory):
     return InventoryResponse(
@@ -72,6 +74,8 @@ def create_inventory(
 
     saved_inventory = save(db, inventory)
 
+    logger.info(f"Inventory {saved_inventory.id} created")
+
     return map_inventory_response(saved_inventory)
 
 
@@ -102,6 +106,8 @@ def update_inventory(
     db.commit()
     db.refresh(inventory)
 
+    logger.info(f"Inventory {inventory.id} updated")
+
     return map_inventory_response(inventory)
 
 
@@ -117,6 +123,8 @@ def deactivate_inventory(db: Session, inventory_id: int, current_user_id: int):
     db.commit()
     db.refresh(inventory)
 
+    logger.info(f"Inventory {inventory.id} deactivated")
+
     return {"message": "Inventory deactivated successfully"}
 
 
@@ -131,5 +139,7 @@ def reactivate_inventory(db: Session, inventory_id: int, current_user_id: int):
 
     db.commit()
     db.refresh(inventory)
+
+    logger.info(f"Inventory {inventory.id} reactivated")
 
     return {"message": "Inventory reactivated successfully"}

@@ -33,12 +33,14 @@ from app.forecasting.router import router as forecasting_router
 
 from app.middleware import RequestIDMiddleware
 from app.exceptions.handlers import register_exception_handlers
+from app.logging.middleware import LoggingMiddleware
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
 app.add_middleware(RequestIDMiddleware)
+app.add_middleware(LoggingMiddleware)
 
 register_exception_handlers(app)
 
