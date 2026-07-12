@@ -1,6 +1,8 @@
 from pydantic import BaseModel
 from datetime import datetime
 
+from app.common.pagination import PaginationRequest
+
 
 class BrandCreateRequest(BaseModel):
     name: str
@@ -26,3 +28,7 @@ class BrandResponse(BaseModel):
 
     created_at: datetime
     updated_at: datetime | None
+
+
+class BrandSearchRequest(PaginationRequest):
+    is_active: bool | None = None

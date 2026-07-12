@@ -16,7 +16,3 @@ class BrandAlreadyExistsException(AlreadyExistsException):
 
 class BrandInactiveException(BusinessException):
     pass
-
-
-class BrandFailException(InternalServerException):
-    pass

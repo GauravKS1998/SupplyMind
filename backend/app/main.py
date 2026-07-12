@@ -22,6 +22,10 @@ from app.dashboard.router import router as dashboard_router
 from app.categories.router import router as category_router
 from app.subcategories.router import router as subcategory_router
 from app.product_types.router import router as product_type_router
+from app.brands.router import router as brand_router
+from app.units_of_measure.router import (
+    router as unit_of_measure_router,
+)
 from app.products.router import router as product_router
 from app.suppliers.router import router as supplier_router
 from app.warehouses.router import router as warehouse_router
@@ -59,6 +63,18 @@ app.include_router(category_router, prefix="/categories", tags=["Categories"])
 app.include_router(subcategory_router, prefix="/subcategories", tags=["SubCategories"])
 
 app.include_router(product_type_router, prefix="/product-types", tags=["Product Types"])
+
+app.include_router(
+    brand_router,
+    prefix="/brands",
+    tags=["Brands"],
+)
+
+app.include_router(
+    unit_of_measure_router,
+    prefix="/units-of-measure",
+    tags=["Units of Measure"],
+)
 
 app.include_router(product_router, prefix="/products", tags=["Products"])
 

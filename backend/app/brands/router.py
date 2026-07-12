@@ -10,88 +10,57 @@ from app.auth.enums import UserRole
 
 from .schema import (
     BrandCreateRequest,
+    BrandSearchRequest,
     BrandUpdateRequest,
 )
 
 from .service import (
-    get_all_brands,
-    get_active_brands,
-    get_inactive_brands,
     get_brand_by_id,
     create_brand,
     update_brand,
     deactivate_brand,
+    search_brands,
     reactivate_brand,
 )
 
 router = APIRouter()
 
-
-@router.get(
-    "/",
-    dependencies=[
-        Depends(
-            require_roles(
-                UserRole.ADMIN,
-                UserRole.SUPER_ADMIN,
-                UserRole.PROCUREMENT_MANAGER,
-                UserRole.INVENTORY_ANALYST,
-            )
-        )
-    ],
+READ_ROLES = (
+    UserRole.ADMIN,
+    UserRole.SUPER_ADMIN,
+    UserRole.PROCUREMENT_MANAGER,
+    UserRole.WAREHOUSE_MANAGER,
+    UserRole.WAREHOUSE_STAFF,
+    UserRole.SALES_MANAGER,
+    UserRole.INVENTORY_ANALYST,
 )
-def get_all(db: Session = Depends(get_db)):
-    return get_all_brands(db)
 
-
-@router.get(
-    "/active",
-    dependencies=[
-        Depends(
-            require_roles(
-                UserRole.ADMIN,
-                UserRole.SUPER_ADMIN,
-                UserRole.PROCUREMENT_MANAGER,
-                UserRole.INVENTORY_ANALYST,
-            )
-        )
-    ],
+WRITE_ROLES = (
+    UserRole.ADMIN,
+    UserRole.SUPER_ADMIN,
+    UserRole.PROCUREMENT_MANAGER,
 )
-def get_active(db: Session = Depends(get_db)):
-    return get_active_brands(db)
 
 
-@router.get(
-    "/inactive",
-    dependencies=[
-        Depends(
-            require_roles(
-                UserRole.ADMIN,
-                UserRole.SUPER_ADMIN,
-                UserRole.PROCUREMENT_MANAGER,
-                UserRole.INVENTORY_ANALYST,
-            )
-        )
-    ],
+@router.post(
+    "/search",
+    dependencies=[Depends(require_roles(*READ_ROLES))],
 )
-def get_inactive(db: Session = Depends(get_db)):
-    return get_inactive_brands(db)
+def search(
+    request: BrandSearchRequest,
+    db: Session = Depends(get_db),
+):
+    return search_brands(
+        db,
+        request,
+    )
 
 
 @router.get(
     "/{brand_id}",
-    dependencies=[
-        Depends(
-            require_roles(
-                UserRole.ADMIN,
-                UserRole.SUPER_ADMIN,
-                UserRole.PROCUREMENT_MANAGER,
-                UserRole.INVENTORY_ANALYST,
-            )
-        )
-    ],
+    dependencies=[Depends(require_roles(*READ_ROLES))],
 )
-def get_by_id(
+def get_single_brand(
     brand_id: int,
     db: Session = Depends(get_db),
 ):
@@ -99,16 +68,10 @@ def get_by_id(
 
 
 @router.post("/")
-def create(
+def add_brand(
     request: BrandCreateRequest,
     db: Session = Depends(get_db),
-    current_user=Depends(
-        require_roles(
-            UserRole.ADMIN,
-            UserRole.SUPER_ADMIN,
-            UserRole.PROCUREMENT_MANAGER,
-        )
-    ),
+    current_user=Depends(require_roles(*WRITE_ROLES)),
 ):
     return create_brand(
         db,
@@ -118,17 +81,11 @@ def create(
 
 
 @router.put("/{brand_id}")
-def update(
+def update_existing_brand(
     brand_id: int,
     request: BrandUpdateRequest,
     db: Session = Depends(get_db),
-    current_user=Depends(
-        require_roles(
-            UserRole.ADMIN,
-            UserRole.SUPER_ADMIN,
-            UserRole.PROCUREMENT_MANAGER,
-        )
-    ),
+    current_user=Depends(require_roles(*WRITE_ROLES)),
 ):
     return update_brand(
         db,
@@ -139,15 +96,10 @@ def update(
 
 
 @router.put("/{brand_id}/deactivate")
-def deactivate(
+def deactivate_existing_brand(
     brand_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(
-        require_roles(
-            UserRole.ADMIN,
-            UserRole.SUPER_ADMIN,
-        )
-    ),
+    current_user=Depends(require_roles(*WRITE_ROLES)),
 ):
     return deactivate_brand(
         db,
@@ -157,15 +109,10 @@ def deactivate(
 
 
 @router.put("/{brand_id}/reactivate")
-def reactivate(
+def reactivate_existing_brand(
     brand_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(
-        require_roles(
-            UserRole.ADMIN,
-            UserRole.SUPER_ADMIN,
-        )
-    ),
+    current_user=Depends(require_roles(*WRITE_ROLES)),
 ):
     return reactivate_brand(
         db,
