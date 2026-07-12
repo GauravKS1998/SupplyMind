@@ -7,216 +7,43 @@ from app.auth.enums import UserRole
 from app.database.database import get_db
 
 from .service import (
-    get_all_products,
-    get_active_products,
-    get_inactive_products,
     get_product_by_id,
-    get_products_by_supplier_id,
-    get_products_by_category_id,
-    get_products_by_subcategory_id,
-    get_products_by_product_type_id,
-    get_products_by_brand_id,
-    get_products_by_uom_id,
+    search_products,
     create_product,
     update_product,
     deactivate_product,
     reactivate_product,
 )
 
-from .schema import ProductCreateRequest, ProductUpdateRequest
+from .schema import ProductCreateRequest, ProductUpdateRequest, ProductSearchRequest
 
 router = APIRouter()
 
 
+@router.post(
+    "/search",
+    dependencies=[
+        Depends(
+            require_roles(
+                UserRole.ADMIN,
+                UserRole.SUPER_ADMIN,
+                UserRole.PROCUREMENT_MANAGER,
+                UserRole.WAREHOUSE_MANAGER,
+                UserRole.WAREHOUSE_STAFF,
+                UserRole.SALES_MANAGER,
+                UserRole.INVENTORY_ANALYST,
+            )
+        )
+    ],
+)
+def search(
+    request: ProductSearchRequest,
+    db: Session = Depends(get_db),
+):
+    return search_products(db, request)
+
+
 # Depends is equivalent to @Autowired
-@router.get(
-    "/",
-    dependencies=[
-        Depends(
-            require_roles(
-                UserRole.ADMIN,
-                UserRole.SUPER_ADMIN,
-                UserRole.PROCUREMENT_MANAGER,
-                UserRole.WAREHOUSE_MANAGER,
-                UserRole.WAREHOUSE_STAFF,
-                UserRole.SALES_MANAGER,
-                UserRole.INVENTORY_ANALYST,
-            )
-        )
-    ],
-)
-def get_products(
-    db: Session = Depends(get_db),  # means: FastAPI, give me a database session.
-):
-    return get_all_products(db)
-
-
-@router.get(
-    "/active",
-    dependencies=[
-        Depends(
-            require_roles(
-                UserRole.ADMIN,
-                UserRole.SUPER_ADMIN,
-                UserRole.PROCUREMENT_MANAGER,
-                UserRole.WAREHOUSE_MANAGER,
-                UserRole.WAREHOUSE_STAFF,
-                UserRole.SALES_MANAGER,
-                UserRole.INVENTORY_ANALYST,
-            )
-        )
-    ],
-)
-def get_active(db: Session = Depends(get_db)):
-    return get_active_products(db)
-
-
-@router.get(
-    "/inactive",
-    dependencies=[
-        Depends(
-            require_roles(
-                UserRole.ADMIN,
-                UserRole.SUPER_ADMIN,
-                UserRole.PROCUREMENT_MANAGER,
-                UserRole.WAREHOUSE_MANAGER,
-                UserRole.WAREHOUSE_STAFF,
-                UserRole.SALES_MANAGER,
-                UserRole.INVENTORY_ANALYST,
-            )
-        )
-    ],
-)
-def get_inactive(db: Session = Depends(get_db)):
-    return get_inactive_products(db)
-
-
-@router.get(
-    "/supplier/{supplier_id}",
-    dependencies=[
-        Depends(
-            require_roles(
-                UserRole.ADMIN,
-                UserRole.SUPER_ADMIN,
-                UserRole.PROCUREMENT_MANAGER,
-                UserRole.WAREHOUSE_MANAGER,
-                UserRole.WAREHOUSE_STAFF,
-                UserRole.SALES_MANAGER,
-                UserRole.INVENTORY_ANALYST,
-            )
-        )
-    ],
-)
-def get_product_by_supplier(supplier_id: int, db: Session = Depends(get_db)):
-    return get_products_by_supplier_id(db, supplier_id)
-
-
-@router.get(
-    "/category/{category_id}",
-    dependencies=[
-        Depends(
-            require_roles(
-                UserRole.ADMIN,
-                UserRole.SUPER_ADMIN,
-                UserRole.PROCUREMENT_MANAGER,
-                UserRole.WAREHOUSE_MANAGER,
-                UserRole.WAREHOUSE_STAFF,
-                UserRole.SALES_MANAGER,
-                UserRole.INVENTORY_ANALYST,
-            )
-        )
-    ],
-)
-def get_product_by_category(category_id: int, db: Session = Depends(get_db)):
-    return get_products_by_category_id(db, category_id)
-
-
-@router.get(
-    "/subcategory/{subcategory_id}",
-    dependencies=[
-        Depends(
-            require_roles(
-                UserRole.ADMIN,
-                UserRole.SUPER_ADMIN,
-                UserRole.PROCUREMENT_MANAGER,
-                UserRole.WAREHOUSE_MANAGER,
-                UserRole.WAREHOUSE_STAFF,
-                UserRole.SALES_MANAGER,
-                UserRole.INVENTORY_ANALYST,
-            )
-        )
-    ],
-)
-def get_product_by_subcategory(subcategory_id: int, db: Session = Depends(get_db)):
-    return get_products_by_subcategory_id(db, subcategory_id)
-
-
-@router.get(
-    "/product-type/{product_type_id}",
-    dependencies=[
-        Depends(
-            require_roles(
-                UserRole.ADMIN,
-                UserRole.SUPER_ADMIN,
-                UserRole.PROCUREMENT_MANAGER,
-                UserRole.WAREHOUSE_MANAGER,
-                UserRole.WAREHOUSE_STAFF,
-                UserRole.SALES_MANAGER,
-                UserRole.INVENTORY_ANALYST,
-            )
-        )
-    ],
-)
-def get_product_by_product_type(product_type_id: int, db: Session = Depends(get_db)):
-    return get_products_by_product_type_id(db, product_type_id)
-
-
-@router.get(
-    "/brand/{brand_id}",
-    dependencies=[
-        Depends(
-            require_roles(
-                UserRole.ADMIN,
-                UserRole.SUPER_ADMIN,
-                UserRole.PROCUREMENT_MANAGER,
-                UserRole.WAREHOUSE_MANAGER,
-                UserRole.WAREHOUSE_STAFF,
-                UserRole.SALES_MANAGER,
-                UserRole.INVENTORY_ANALYST,
-            )
-        )
-    ],
-)
-def get_products_by_brand(
-    brand_id: int,
-    db: Session = Depends(get_db),
-):
-    return get_products_by_brand_id(db, brand_id)
-
-
-@router.get(
-    "/uom/{uom_id}",
-    dependencies=[
-        Depends(
-            require_roles(
-                UserRole.ADMIN,
-                UserRole.SUPER_ADMIN,
-                UserRole.PROCUREMENT_MANAGER,
-                UserRole.WAREHOUSE_MANAGER,
-                UserRole.WAREHOUSE_STAFF,
-                UserRole.SALES_MANAGER,
-                UserRole.INVENTORY_ANALYST,
-            )
-        )
-    ],
-)
-def get_products_by_uom(
-    uom_id: int,
-    db: Session = Depends(get_db),
-):
-    return get_products_by_uom_id(db, uom_id)
-
-
 @router.get(
     "/{product_id}",
     dependencies=[

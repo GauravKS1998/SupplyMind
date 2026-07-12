@@ -1,9 +1,21 @@
+from sqlalchemy import func
 from sqlalchemy.orm import Session
+
+from app.common.filtering import apply_filter
+from app.common.search import apply_search
+from app.common.sorting import apply_sorting
+
 from .model import Product
 
+# -------------------------
+# Basic CRUD
+# -------------------------
 
-def find_all(db: Session):
-    return db.query(Product).all()
+
+def save(db: Session, product: Product):
+    db.add(product)
+    db.flush()
+    return product
 
 
 def find_by_id(db: Session, product_id: int):
@@ -14,60 +26,93 @@ def find_by_sku(db: Session, sku: str):
     return db.query(Product).filter(Product.sku == sku).first()
 
 
-def find_by_barcode(db: Session, barcode: str):
-    return db.query(Product).filter(Product.barcode == barcode).first()
+# -------------------------
+# Product Listing
+# -------------------------
+
+ALLOWED_SORT_FIELDS = {
+    "name",
+    "sku",
+    "purchase_price",
+    "selling_price",
+    "created_at",
+    "updated_at",
+}
 
 
-def find_by_brand_id(db: Session, brand_id: int):
-    return db.query(Product).filter(Product.brand_id == brand_id).all()
+def find_products(
+    db: Session,
+    page: int = 1,
+    size: int = 20,
+    search: str | None = None,
+    supplier_id: int | None = None,
+    category_id: int | None = None,
+    subcategory_id: int | None = None,
+    product_type_id: int | None = None,
+    brand_id: int | None = None,
+    uom_id: int | None = None,
+    is_active: bool | None = None,
+    sort_by: str | None = None,
+    direction: str = "asc",
+):
 
+    query = db.query(Product)
 
-def find_by_uom_id(db: Session, uom_id: int):
-    return db.query(Product).filter(Product.uom_id == uom_id).all()
+    # -----------------------
+    # Filtering
+    # -----------------------
 
-
-def find_by_supplier_id(db: Session, supplier_id: int):
-    return (
-        db.query(Product)
-        .filter(Product.supplier_id == supplier_id, Product.is_active == True)
-        .all()
+    query = apply_filter(
+        query,
+        Product,
+        supplier_id=supplier_id,
+        category_id=category_id,
+        subcategory_id=subcategory_id,
+        product_type_id=product_type_id,
+        brand_id=brand_id,
+        uom_id=uom_id,
+        is_active=is_active,
     )
 
+    # -----------------------
+    # Search
+    # -----------------------
 
-def find_by_category_id(db: Session, category_id: int):
-    return (
-        db.query(Product)
-        .filter(Product.category_id == category_id, Product.is_active == True)
-        .all()
+    query = apply_search(
+        query,
+        [
+            Product.name,
+            Product.sku,
+            Product.barcode,
+        ],
+        search,
     )
 
+    total_items = query.with_entities(func.count(Product.id)).scalar()
 
-def find_by_subcategory_id(db: Session, subcategory_id: int):
-    return (
-        db.query(Product)
-        .filter(Product.subcategory_id == subcategory_id, Product.is_active == True)
-        .all()
+    # -----------------------
+    # Sorting
+    # -----------------------
+
+    if sort_by:
+
+        if sort_by not in ALLOWED_SORT_FIELDS:
+            sort_by = "created_at"
+
+    else:
+        sort_by = "created_at"
+
+    query = apply_sorting(
+        query,
+        Product,
+        sort_by,
+        direction,
     )
 
+    # -----------------------
+    # Pagination
+    # -----------------------
 
-def find_by_product_type_id(db: Session, product_type_id: int):
-    return (
-        db.query(Product)
-        .filter(Product.product_type_id == product_type_id, Product.is_active == True)
-        .all()
-    )
+    items = query.offset((page - 1) * size).limit(size).all()
 
-
-def find_active(db: Session):
-    return db.query(Product).filter(Product.is_active == True).all()
-
-
-def find_inactive(db: Session):
-    return db.query(Product).filter(Product.is_active == False).all()
-
-
-def save(db: Session, product: Product):
-    db.add(product)
-    db.flush()
-
-    return product
+    return items, total_items

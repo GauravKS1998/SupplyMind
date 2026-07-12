@@ -1,6 +1,8 @@
 from pydantic import BaseModel
 from datetime import datetime
 
+from app.common.pagination import PaginationRequest
+
 
 class ProductCreateRequest(BaseModel):
     name: str
@@ -65,9 +67,9 @@ class ProductResponse(BaseModel):
     brand_id: int
     brand_name: str
 
-    unit_of_measure_id: int
-    unit_of_measure_code: str
-    unit_of_measure_name: str
+    uom_id: int
+    uom_code: str
+    uom_name: str
 
     purchase_price: float
 
@@ -86,3 +88,20 @@ class ProductResponse(BaseModel):
     created_at: datetime
 
     updated_at: datetime | None
+
+
+class ProductSearchRequest(PaginationRequest):
+
+    supplier_id: int | None = None
+
+    category_id: int | None = None
+
+    subcategory_id: int | None = None
+
+    product_type_id: int | None = None
+
+    brand_id: int | None = None
+
+    uom_id: int | None = None
+
+    is_active: bool | None = None
