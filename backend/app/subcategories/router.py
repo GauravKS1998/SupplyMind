@@ -12,6 +12,7 @@ from .service import (
     get_active_subcategories,
     get_inactive_subcategories,
     get_all_subcategories_by_category,
+    get_active_subcategories_by_category_id,
     create_subcategory,
     update_subcategory,
     deactivate_subcategory,
@@ -25,7 +26,6 @@ from .schema import (
 )
 
 router = APIRouter()
-
 
 READ_ROLES = (
     UserRole.SUPER_ADMIN,
@@ -80,11 +80,25 @@ def get_inactive(db: Session = Depends(get_db)):
 
 
 @router.get(
-    "/{category_id}",
+    "/category/{category_id}",
     dependencies=[Depends(require_roles(*READ_ROLES))],
 )
 def get_subcategories_by_category(category_id: int, db: Session = Depends(get_db)):
     return get_all_subcategories_by_category(db, category_id)
+
+
+@router.get(
+    "/category/{category_id}/active",
+    dependencies=[Depends(require_roles(*READ_ROLES))],
+)
+def get_active_subcategories_by_category(
+    category_id: int,
+    db: Session = Depends(get_db),
+):
+    return get_active_subcategories_by_category_id(
+        db,
+        category_id,
+    )
 
 
 @router.post("/")

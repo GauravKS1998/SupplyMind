@@ -27,6 +27,7 @@ from .repository import (
     save,
     find_by_name,
     find_by_category_id,
+    find_active_by_category_id,
     find_active,
     find_inactive,
     find_subcategories,
@@ -97,14 +98,31 @@ def get_inactive_subcategories(db: Session):
 def get_all_subcategories_by_category(db: Session, category_id: int):
 
     category = get_or_raise(
-        find_by_id(db, category_id),
+        find_category_by_id(db, category_id),
+        CategoryNotFoundException("Category not found"),
+    )
+
+    subcategories = find_by_category_id(db, category.id)
+
+    return map_subcategories(subcategories)
+
+
+def get_active_subcategories_by_category_id(
+    db: Session,
+    category_id: int,
+):
+    category = get_or_raise(
+        find_category_by_id(db, category_id),
         CategoryNotFoundException("Category not found"),
     )
 
     if not category.is_active:
-        raise CategoryInactiveException("Category is inactive")
+        raise CategoryNotFoundException("Category is inactive")
 
-    subcategories = find_by_category_id(db, category_id)
+    subcategories = find_active_by_category_id(
+        db,
+        category.id,
+    )
 
     return map_subcategories(subcategories)
 

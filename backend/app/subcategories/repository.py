@@ -16,10 +16,31 @@ def find_by_id(db: Session, subcategory_id: int):
     return db.query(SubCategory).filter(SubCategory.id == subcategory_id).first()
 
 
-def find_by_category_id(db: Session, category_id: int):
+def find_by_category_id(
+    db: Session,
+    category_id: int,
+):
     return (
         db.query(SubCategory)
-        .filter(SubCategory.category_id == category_id, SubCategory.is_active == True)
+        .filter(
+            SubCategory.category_id == category_id,
+        )
+        .order_by(SubCategory.name.asc())
+        .all()
+    )
+
+
+def find_active_by_category_id(
+    db: Session,
+    category_id: int,
+):
+    return (
+        db.query(SubCategory)
+        .filter(
+            SubCategory.category_id == category_id,
+            SubCategory.is_active.is_(True),
+        )
+        .order_by(SubCategory.name.asc())
         .all()
     )
 
