@@ -1,10 +1,25 @@
 from sqlalchemy.orm import Session
 
+import math
+
 from datetime import datetime, timezone
 
 from .model import Category
 
-from .schema import CategoryCreateRequest, CategoryUpdateRequest, CategoryResponse
+from app.common.pagination import PaginationMeta
+from app.common.responses import PaginatedResponse
+from app.logging.logger import logger
+
+from app.common.entity_utils import get_or_raise
+
+from .mapper import map_category, map_categories
+
+from .schema import (
+    CategoryCreateRequest,
+    CategoryUpdateRequest,
+    CategoryResponse,
+    CategorySearchRequest,
+)
 
 from .repository import (
     find_all,
@@ -13,36 +28,61 @@ from .repository import (
     find_by_name,
     find_active,
     find_inactive,
+    find_categories,
 )
 
-from .exceptions import CategoryNotFoundException, CategoryAlreadyExistsException
+from .exceptions import (
+    CategoryNotFoundException,
+    CategoryAlreadyExistsException,
+    CategoryInactiveException,
+)
+
+
+def search_categories(
+    db: Session, request: CategorySearchRequest
+) -> PaginatedResponse[CategoryResponse]:
+
+    categories, total_items = find_categories(
+        db=db,
+        page=request.page,
+        size=request.size,
+        search=request.search,
+        is_active=request.is_active,
+        sort_by=request.sort_by,
+        direction=request.direction,
+    )
+
+    total_pages = math.ceil(total_items / request.size) if total_items > 0 else 0
+
+    return PaginatedResponse(
+        items=map_categories(categories),
+        pagination=PaginationMeta(
+            page=request.page,
+            size=request.size,
+            total_items=total_items,
+            total_pages=total_pages,
+            has_next=request.page < total_pages,
+            has_previous=request.page > 1,
+        ),
+    )
 
 
 def get_all_categories(db: Session):
     categories = find_all(db)
 
-    return [
-        CategoryResponse.model_validate(category, from_attributes=True)
-        for category in categories
-    ]
+    return map_categories(categories)
 
 
 def get_active_categories(db: Session):
     categories = find_active(db)
 
-    return [
-        CategoryResponse.model_validate(category, from_attributes=True)
-        for category in categories
-    ]
+    return map_categories(categories)
 
 
 def get_inactive_categories(db: Session):
     categories = find_inactive(db)
 
-    return [
-        CategoryResponse.model_validate(category, from_attributes=True)
-        for category in categories
-    ]
+    return map_categories(categories)
 
 
 def create_category(db: Session, request: CategoryCreateRequest, current_user_id: int):
@@ -59,16 +99,21 @@ def create_category(db: Session, request: CategoryCreateRequest, current_user_id
     db.commit()
     db.refresh(saved_category)
 
-    return CategoryResponse.model_validate(saved_category, from_attributes=True)
+    logger.info(f"Category {saved_category.id} created")
+
+    return map_category(saved_category)
 
 
 def update_category(
     db: Session, category_id: int, request: CategoryUpdateRequest, current_user_id: int
 ):
-    category = find_by_id(db, category_id)
+    category = get_or_raise(
+        find_by_id(db, category_id),
+        CategoryNotFoundException("Category not found"),
+    )
 
-    if not category:
-        raise CategoryNotFoundException("Category not found")
+    if not category.is_active:
+        raise CategoryInactiveException("Category is inactive")
 
     category.name = request.name
     category.updated_by = current_user_id
@@ -77,14 +122,20 @@ def update_category(
     db.commit()
     db.refresh(category)
 
-    return CategoryResponse.model_validate(category, from_attributes=True)
+    logger.info(f"Category {category.id} updated")
+
+    return map_category(category)
 
 
 def deactivate_category(db: Session, category_id: int, current_user_id: int):
-    category = find_by_id(db, category_id)
 
-    if not category:
-        raise CategoryNotFoundException("Category not found")
+    category = get_or_raise(
+        find_by_id(db, category_id),
+        CategoryNotFoundException("Category not found"),
+    )
+
+    if not category.is_active:
+        return {"message": "Category already inactive"}
 
     category.is_active = False
     category.updated_by = current_user_id
@@ -93,14 +144,20 @@ def deactivate_category(db: Session, category_id: int, current_user_id: int):
     db.commit()
     db.refresh(category)
 
+    logger.info(f"Category {category.id} deactivated")
+
     return {"message": "Category deactivated successfully"}
 
 
 def reactivate_category(db: Session, category_id: int, current_user_id: int):
-    category = find_by_id(db, category_id)
 
-    if not category:
-        raise CategoryNotFoundException("Category not found")
+    category = get_or_raise(
+        find_by_id(db, category_id),
+        CategoryNotFoundException("Category not found"),
+    )
+
+    if category.is_active:
+        return {"message": "Category already active"}
 
     category.is_active = True
     category.updated_by = current_user_id
@@ -108,5 +165,7 @@ def reactivate_category(db: Session, category_id: int, current_user_id: int):
 
     db.commit()
     db.refresh(category)
+
+    logger.info(f"Category {category.id} reactivated")
 
     return {"message": "Category reactivated successfully"}

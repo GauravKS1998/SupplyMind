@@ -1,6 +1,7 @@
 from app.exceptions.common import (
     NotFoundException,
     AlreadyExistsException,
+    BusinessException,
 )
 
 
@@ -9,4 +10,8 @@ class CategoryNotFoundException(NotFoundException):
 
 
 class CategoryAlreadyExistsException(AlreadyExistsException):
+    pass
+
+
+class CategoryInactiveException(BusinessException):
     pass
