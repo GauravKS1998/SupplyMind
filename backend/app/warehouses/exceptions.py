@@ -1,6 +1,7 @@
 from app.exceptions.common import (
     NotFoundException,
     AlreadyExistsException,
+    BusinessException,
 )
 
 
@@ -9,4 +10,12 @@ class WarehouseAlreadyExistsException(AlreadyExistsException):
 
 
 class WarehouseNotFoundException(NotFoundException):
+    pass
+
+
+class InvalidWarehouseCapacityException(BusinessException):
+    pass
+
+
+class WarehouseCapacityExceededException(BusinessException):
     pass

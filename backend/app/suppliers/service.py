@@ -1,5 +1,5 @@
-from datetime import datetime, timezone
 from math import ceil
+from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
@@ -341,11 +341,9 @@ def reactivate_supplier(
         return {"message": "Supplier already active"}
 
     supplier.is_active = True
-
     supplier.reactivated_by = current_user_id
 
     supplier.updated_by = current_user_id
-
     supplier.updated_at = datetime.now(timezone.utc)
 
     db.commit()

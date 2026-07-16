@@ -17,9 +17,11 @@ class Warehouse(Base):
 
     name: Mapped[str] = mapped_column(String(255))
 
+    description: Mapped[str] = mapped_column(String(255), nullable=True)
+
     warehouse_type: Mapped[str] = mapped_column(String(100))
 
-    manager_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    manager_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
 
     capacity: Mapped[float] = mapped_column(Float)
 
@@ -61,4 +63,7 @@ class Warehouse(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
-    manager = relationship("User")
+    manager = relationship(
+        "User",
+        foreign_keys=[manager_user_id],
+    )
