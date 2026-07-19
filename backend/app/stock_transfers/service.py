@@ -6,8 +6,6 @@ from .model import StockTransfer
 
 from .schema import StockTransferRequest, StockTransferResponse
 
-from app.inventories.repository import find_by_product_and_warehouse
-
 from .repository import save_transfer, find_transfer_by_id
 
 from .enums import TransferStatus
@@ -31,26 +29,26 @@ def initiate_transfer(db: Session, request: StockTransferRequest, current_user_i
     if request.source_warehouse_id == request.destination_warehouse_id:
         raise InvalidTransferRequestException("Source and destination cannot be same")
 
-    source_inventory = find_by_product_and_warehouse(
-        db, request.product_id, request.source_warehouse_id
-    )
+    # source_inventory = find_by_product_and_warehouse(
+    #     db, request.product_id, request.source_warehouse_id
+    # )
 
-    destination_inventory = find_by_product_and_warehouse(
-        db, request.product_id, request.destination_warehouse_id
-    )
+    # destination_inventory = find_by_product_and_warehouse(
+    #     db, request.product_id, request.destination_warehouse_id
+    # )
 
-    if not source_inventory:
-        raise SourceInventoryNotFoundException("Source inventory not found")
+    # if not source_inventory:
+    #     raise SourceInventoryNotFoundException("Source inventory not found")
 
-    if not destination_inventory:
-        raise DestinationInventoryNotFoundException("Destination inventory not found")
+    # if not destination_inventory:
+    #     raise DestinationInventoryNotFoundException("Destination inventory not found")
 
-    if source_inventory.available_quantity < request.quantity:
-        raise InsufficientStockException("Insufficient available stock")
+    # if source_inventory.available_quantity < request.quantity:
+    #     raise InsufficientStockException("Insufficient available stock")
 
     try:
-        source_inventory.reserved_quantity += request.quantity
-        source_inventory.available_quantity -= request.quantity
+        # source_inventory.reserved_quantity += request.quantity
+        # source_inventory.available_quantity -= request.quantity
 
         transfer = StockTransfer(
             product_id=request.product_id,
@@ -125,13 +123,13 @@ def reject_transfer(db: Session, transfer_id: int, current_user_id: int):
     if transfer.status != TransferStatus.INITIATED:
         raise TransferNotInitiatedException("Only initiated transfers can be rejected")
 
-    source_inventory = find_by_product_and_warehouse(
-        db, transfer.product_id, transfer.source_warehouse_id
-    )
+    # source_inventory = find_by_product_and_warehouse(
+    #     db, transfer.product_id, transfer.source_warehouse_id
+    # )
 
     try:
-        source_inventory.reserved_quantity -= transfer.quantity
-        source_inventory.available_quantity += transfer.quantity
+        # source_inventory.reserved_quantity -= transfer.quantity
+        # source_inventory.available_quantity += transfer.quantity
 
         transfer.status = TransferStatus.REJECTED
         transfer.rejected_by = current_user_id
@@ -189,20 +187,20 @@ def complete_transfer(db: Session, transfer_id: int, current_user_id: int):
     if transfer.status != TransferStatus.IN_TRANSIT:
         raise TransferNotInTransitException("Only in-transit transfers can complete")
 
-    source_inventory = find_by_product_and_warehouse(
-        db, transfer.product_id, transfer.source_warehouse_id
-    )
+    # source_inventory = find_by_product_and_warehouse(
+    #     db, transfer.product_id, transfer.source_warehouse_id
+    # )
 
-    destination_inventory = find_by_product_and_warehouse(
-        db, transfer.product_id, transfer.destination_warehouse_id
-    )
+    # destination_inventory = find_by_product_and_warehouse(
+    #     db, transfer.product_id, transfer.destination_warehouse_id
+    # )
 
     try:
-        source_inventory.quantity -= transfer.quantity
-        source_inventory.reserved_quantity -= transfer.quantity
+        # source_inventory.quantity -= transfer.quantity
+        # source_inventory.reserved_quantity -= transfer.quantity
 
-        destination_inventory.quantity += transfer.quantity
-        destination_inventory.available_quantity += transfer.quantity
+        # destination_inventory.quantity += transfer.quantity
+        # destination_inventory.available_quantity += transfer.quantity
 
         transfer.status = TransferStatus.COMPLETED
         transfer.completed_at = datetime.now(timezone.utc)
@@ -233,13 +231,13 @@ def cancel_transfer(db: Session, transfer_id: int, current_user_id: int):
             "Only initiated or approved transfers can be cancelled"
         )
 
-    source_inventory = find_by_product_and_warehouse(
-        db, transfer.product_id, transfer.source_warehouse_id
-    )
+    # source_inventory = find_by_product_and_warehouse(
+    #     db, transfer.product_id, transfer.source_warehouse_id
+    # )
 
     try:
-        source_inventory.reserved_quantity -= transfer.quantity
-        source_inventory.available_quantity += transfer.quantity
+        # source_inventory.reserved_quantity -= transfer.quantity
+        # source_inventory.available_quantity += transfer.quantity
 
         transfer.status = TransferStatus.CANCELLED
         transfer.cancelled_by = current_user_id

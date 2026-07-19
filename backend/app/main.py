@@ -14,6 +14,7 @@ from app.products.model import Product
 from app.suppliers.model import Supplier
 from app.warehouses.model import Warehouse
 from app.inventories.model import Inventory
+from app.inventory_transactions.model import InventoryTransaction
 from app.stock_transfers.model import StockTransfer
 from app.purchase_orders.model import PurchaseOrder
 from app.sales_orders.model import SalesOrder
@@ -30,6 +31,7 @@ from app.products.router import router as product_router
 from app.suppliers.router import router as supplier_router
 from app.warehouses.router import router as warehouse_router
 from app.inventories.router import router as inventory_router
+from app.inventory_transactions.router import router as inventory_transaction_router
 from app.stock_transfers.router import router as stock_transfer_router
 from app.purchase_orders.router import router as purchase_order_router
 from app.sales_orders.router import router as sales_order_router
@@ -83,6 +85,12 @@ app.include_router(supplier_router, prefix="/suppliers", tags=["Suppliers"])
 app.include_router(warehouse_router, prefix="/warehouses", tags=["Warehouses"])
 
 app.include_router(inventory_router, prefix="/inventories", tags=["Inventories"])
+
+app.include_router(
+    inventory_transaction_router,
+    prefix="/inventory-transactions",
+    tags=["Inventory Transactions"],
+)
 
 app.include_router(
     stock_transfer_router, prefix="/stock-transfers", tags=["Stock Transfers"]

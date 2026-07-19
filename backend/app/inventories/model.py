@@ -1,4 +1,15 @@
-from sqlalchemy import Date, Integer, Boolean, ForeignKey, String, DateTime, Float
+from sqlalchemy import (
+    Date,
+    Integer,
+    Boolean,
+    ForeignKey,
+    String,
+    DateTime,
+    Float,
+    Numeric,
+)
+
+from decimal import Decimal
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -23,7 +34,10 @@ class Inventory(Base):
 
     available_quantity: Mapped[int] = mapped_column(Integer)
 
-    unit_cost: Mapped[float] = mapped_column(Float)
+    unit_cost: Mapped[Decimal] = mapped_column(
+        Numeric(18, 2),
+        nullable=False,
+    )
 
     reorder_level: Mapped[int] = mapped_column(Integer)
 

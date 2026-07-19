@@ -1,0 +1,20 @@
+from enum import Enum
+
+
+class InventoryTransactionType(str, Enum):
+    CREATE = "CREATE"
+    INCREASE = "INCREASE"
+    DECREASE = "DECREASE"
+    RESERVE = "RESERVE"
+    RELEASE = "RELEASE"
+    ADJUSTMENT = "ADJUSTMENT"
+
+
+class InventoryReferenceType(str, Enum):
+    INVENTORY = "INVENTORY"
+    PURCHASE_ORDER = "PURCHASE_ORDER"
+    GOODS_RECEIPT = "GOODS_RECEIPT"
+    SALES_ORDER = "SALES_ORDER"
+    STOCK_TRANSFER = "STOCK_TRANSFER"
+    RETURN = "RETURN"
+    ADJUSTMENT = "ADJUSTMENT"
