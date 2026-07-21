@@ -100,7 +100,7 @@ def find_inventories(
     sort_by: str | None = None,
     direction: str = "asc",
 ):
-    query = apply_inventory_joins(db.query(Inventory))
+    query = inventory_query(db)
 
     # -------------------------
     # Filtering

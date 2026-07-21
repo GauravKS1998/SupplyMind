@@ -7,7 +7,7 @@ from app.common.responses import PaginatedResponse
 
 from app.auth.dependencies import require_roles
 
-from app.auth.enums import UserRole
+from app.users.enums import UserRole
 
 from .schema import (
     InventoryTransactionResponse,

@@ -7,7 +7,7 @@ from alembic import context
 
 from app.database.database import Base
 
-from app.auth.model import User
+from app.users.model import User
 from app.suppliers.model import Supplier
 from app.customers.model import Customer
 from app.products.model import Product

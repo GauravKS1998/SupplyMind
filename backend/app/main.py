@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.database.database import Base, engine
 
-from app.auth.model import User
+from app.users.model import User
 from app.categories.model import Category
 from app.subcategories.model import SubCategory
 from app.product_types.model import ProductType

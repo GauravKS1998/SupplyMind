@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.database.database import get_db
 from app.auth.dependencies import require_roles
-from app.auth.enums import UserRole
+from app.users.enums import UserRole
 
 from .schema import (
     CustomerCreateRequest,
