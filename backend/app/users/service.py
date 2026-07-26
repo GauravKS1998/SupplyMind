@@ -39,7 +39,6 @@ from .validators import (
     validate_user_exists,
     validate_internal_role,
     validate_external_role,
-    validate_email_available,
     validate_user_is_approved,
     validate_not_self,
     validate_not_last_super_admin,

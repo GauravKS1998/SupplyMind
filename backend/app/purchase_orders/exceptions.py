@@ -1,40 +1,26 @@
 from app.exceptions.common import (
-    NotFoundException,
-    AlreadyExistsException,
     BusinessException,
-    InternalServerException,
+    NotFoundException,
 )
-
-
-class PurchaseOrderAlreadyExistsException(AlreadyExistsException):
-    pass
 
 
 class PurchaseOrderNotFoundException(NotFoundException):
     pass
 
 
-class PurchaseOrderNotDraftedException(BusinessException):
+class PurchaseOrderCannotBeModifiedException(BusinessException):
     pass
 
 
-class PurchaseOrderNotSubmittedException(BusinessException):
+class PurchaseOrderCannotBeSubmittedException(BusinessException):
     pass
 
 
-class PurchaseOrderNotApprovedException(BusinessException):
+class PurchaseOrderCannotBeApprovedException(BusinessException):
     pass
 
 
-class PurchaseOrderNotOrderedException(BusinessException):
-    pass
-
-
-class PurchaseOrderNotInTransitException(BusinessException):
-    pass
-
-
-class PurchaseOrderNotReceivedException(BusinessException):
+class PurchaseOrderCannotBeRejectedException(BusinessException):
     pass
 
 
@@ -42,5 +28,17 @@ class PurchaseOrderCannotBeCancelledException(BusinessException):
     pass
 
 
-class PurchaseOrderFailException(InternalServerException):
+class PurchaseOrderCannotBeClosedException(BusinessException):
     pass
+
+
+class PurchaseOrderValidationException(BusinessException):
+    pass
+
+
+class PurchaseOrderLineNotFoundException(NotFoundException):
+
+    def __init__(self, purchase_order_line_id: int):
+        super().__init__(
+            f"Purchase Order Line with id '{purchase_order_line_id}' was not found."
+        )

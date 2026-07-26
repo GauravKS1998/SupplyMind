@@ -10,13 +10,13 @@ from .schema import SalesOrderCreateRequest
 from .service import (
     get_all_sales_orders,
     create_draft_sales_order,
-    confirm_sales_order,
-    reserve_sales_order,
-    dispatch_sales_order,
+    # confirm_sales_order,
+    # reserve_sales_order,
+    # dispatch_sales_order,
     deliver_sales_order,
     complete_sales_order,
-    cancel_sales_order,
-    return_sales_order,
+    # cancel_sales_order,
+    # return_sales_order,
 )
 
 router = APIRouter()
@@ -57,61 +57,61 @@ def create(
     )
 
 
-@router.put("/{sales_order_id}/confirm")
-def confirm(
-    sales_order_id: int,
-    db: Session = Depends(get_db),
-    current_user=Depends(
-        require_roles(
-            UserRole.SALES_MANAGER,
-            UserRole.ADMIN,
-            UserRole.SUPER_ADMIN,
-        )
-    ),
-):
-    return confirm_sales_order(
-        db,
-        sales_order_id,
-        current_user["user_id"],
-    )
+# @router.put("/{sales_order_id}/confirm")
+# def confirm(
+#     sales_order_id: int,
+#     db: Session = Depends(get_db),
+#     current_user=Depends(
+#         require_roles(
+#             UserRole.SALES_MANAGER,
+#             UserRole.ADMIN,
+#             UserRole.SUPER_ADMIN,
+#         )
+#     ),
+# ):
+#     return confirm_sales_order(
+#         db,
+#         sales_order_id,
+#         current_user["user_id"],
+#     )
 
 
-@router.put("/{sales_order_id}/reserve")
-def reserve(
-    sales_order_id: int,
-    db: Session = Depends(get_db),
-    current_user=Depends(
-        require_roles(
-            UserRole.WAREHOUSE_MANAGER,
-            UserRole.WAREHOUSE_STAFF,
-            UserRole.SUPER_ADMIN,
-        )
-    ),
-):
-    return reserve_sales_order(
-        db,
-        sales_order_id,
-        current_user["user_id"],
-    )
+# @router.put("/{sales_order_id}/reserve")
+# def reserve(
+#     sales_order_id: int,
+#     db: Session = Depends(get_db),
+#     current_user=Depends(
+#         require_roles(
+#             UserRole.WAREHOUSE_MANAGER,
+#             UserRole.WAREHOUSE_STAFF,
+#             UserRole.SUPER_ADMIN,
+#         )
+#     ),
+# ):
+#     return reserve_sales_order(
+#         db,
+#         sales_order_id,
+#         current_user["user_id"],
+#     )
 
 
-@router.put("/{sales_order_id}/dispatch")
-def dispatch(
-    sales_order_id: int,
-    db: Session = Depends(get_db),
-    current_user=Depends(
-        require_roles(
-            UserRole.WAREHOUSE_MANAGER,
-            UserRole.WAREHOUSE_STAFF,
-            UserRole.SUPER_ADMIN,
-        )
-    ),
-):
-    return dispatch_sales_order(
-        db,
-        sales_order_id,
-        current_user["user_id"],
-    )
+# @router.put("/{sales_order_id}/dispatch")
+# def dispatch(
+#     sales_order_id: int,
+#     db: Session = Depends(get_db),
+#     current_user=Depends(
+#         require_roles(
+#             UserRole.WAREHOUSE_MANAGER,
+#             UserRole.WAREHOUSE_STAFF,
+#             UserRole.SUPER_ADMIN,
+#         )
+#     ),
+# ):
+#     return dispatch_sales_order(
+#         db,
+#         sales_order_id,
+#         current_user["user_id"],
+#     )
 
 
 @router.put("/{sales_order_id}/deliver")
@@ -152,41 +152,41 @@ def complete(
     )
 
 
-@router.put("/{sales_order_id}/cancel")
-def cancel(
-    sales_order_id: int,
-    db: Session = Depends(get_db),
-    current_user=Depends(
-        require_roles(
-            UserRole.CUSTOMER,
-            UserRole.SALES_MANAGER,
-            UserRole.ADMIN,
-            UserRole.SUPER_ADMIN,
-        )
-    ),
-):
-    return cancel_sales_order(
-        db,
-        sales_order_id,
-        current_user["user_id"],
-    )
+# @router.put("/{sales_order_id}/cancel")
+# def cancel(
+#     sales_order_id: int,
+#     db: Session = Depends(get_db),
+#     current_user=Depends(
+#         require_roles(
+#             UserRole.CUSTOMER,
+#             UserRole.SALES_MANAGER,
+#             UserRole.ADMIN,
+#             UserRole.SUPER_ADMIN,
+#         )
+#     ),
+# ):
+#     return cancel_sales_order(
+#         db,
+#         sales_order_id,
+#         current_user["user_id"],
+#     )
 
 
-@router.put("/{sales_order_id}/return")
-def return_order(
-    sales_order_id: int,
-    db: Session = Depends(get_db),
-    current_user=Depends(
-        require_roles(
-            UserRole.CUSTOMER,
-            UserRole.SALES_MANAGER,
-            UserRole.ADMIN,
-            UserRole.SUPER_ADMIN,
-        )
-    ),
-):
-    return return_sales_order(
-        db,
-        sales_order_id,
-        current_user["user_id"],
-    )
+# @router.put("/{sales_order_id}/return")
+# def return_order(
+#     sales_order_id: int,
+#     db: Session = Depends(get_db),
+#     current_user=Depends(
+#         require_roles(
+#             UserRole.CUSTOMER,
+#             UserRole.SALES_MANAGER,
+#             UserRole.ADMIN,
+#             UserRole.SUPER_ADMIN,
+#         )
+#     ),
+# ):
+#     return return_sales_order(
+#         db,
+#         sales_order_id,
+#         current_user["user_id"],
+#     )
