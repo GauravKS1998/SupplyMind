@@ -18,6 +18,7 @@ from app.inventory_transactions.model import InventoryTransaction
 from app.common.document_number.model import DocumentSequence
 from app.stock_transfers.model import StockTransfer
 from app.purchase_orders.model import PurchaseOrder
+from app.goods_receipts.model import GoodsReceipt
 from app.sales_orders.model import SalesOrder
 
 from app.dashboard.router import router as dashboard_router
@@ -35,6 +36,7 @@ from app.inventories.router import router as inventory_router
 from app.inventory_transactions.router import router as inventory_transaction_router
 from app.stock_transfers.router import router as stock_transfer_router
 from app.purchase_orders.router import router as purchase_order_router
+from app.goods_receipts.router import router as goods_receipt_router
 from app.sales_orders.router import router as sales_order_router
 from app.forecasting.router import router as forecasting_router
 
@@ -99,6 +101,10 @@ app.include_router(
 
 app.include_router(
     purchase_order_router, prefix="/purchase-orders", tags=["Purchase Orders"]
+)
+
+app.include_router(
+    goods_receipt_router, prefix="/goods-receipts", tags=["Goods Receipts"]
 )
 
 app.include_router(sales_order_router, prefix="/sales-orders", tags=["Sales Orders"])

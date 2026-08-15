@@ -404,6 +404,49 @@ def update_inventory_audit(
     inventory.updated_at = datetime.now(timezone.utc)
 
 
+def _increase_inventory(
+    db: Session,
+    inventory: Inventory,
+    quantity: int,
+    current_user_id: int,
+    reason: str | None = None,
+    reference_type: InventoryReferenceType | None = None,
+    reference_id: int | None = None,
+):
+    before = capture_inventory_state(inventory)
+
+    inventory.quantity += quantity
+
+    inventory.available_quantity = calculate_available_quantity(
+        inventory.quantity,
+        inventory.reserved_quantity,
+    )
+
+    update_inventory_audit(
+        inventory,
+        current_user_id,
+    )
+
+    after = capture_inventory_state(inventory)
+
+    create_transaction(
+        db=db,
+        inventory_id=inventory.id,
+        transaction_type=InventoryTransactionType.INCREASE,
+        quantity_before=before["quantity"],
+        quantity_delta=quantity,
+        quantity_after=after["quantity"],
+        reserved_quantity_before=before["reserved_quantity"],
+        reserved_quantity_after=after["reserved_quantity"],
+        available_quantity_before=before["available_quantity"],
+        available_quantity_after=after["available_quantity"],
+        created_by=current_user_id,
+        reason=reason,
+        reference_type=reference_type,
+        reference_id=reference_id,
+    )
+
+
 def increase_inventory(
     db: Session,
     inventory_id: int,
@@ -419,54 +462,11 @@ def increase_inventory(
         inventory,
     )
 
-    # ---------------------------------------------------------
-    # Capture Before State
-    # ---------------------------------------------------------
-
-    before = capture_inventory_state(
-        inventory,
-    )
-
-    # ---------------------------------------------------------
-    # Apply Inventory Increase
-    # ---------------------------------------------------------
-
-    inventory.quantity += request.quantity
-
-    inventory.available_quantity = calculate_available_quantity(
-        inventory.quantity,
-        inventory.reserved_quantity,
-    )
-
-    update_inventory_audit(
-        inventory,
-        current_user_id,
-    )
-
-    # ---------------------------------------------------------
-    # Capture After State
-    # ---------------------------------------------------------
-
-    after = capture_inventory_state(
-        inventory,
-    )
-
-    # ---------------------------------------------------------
-    # Record Transaction
-    # ---------------------------------------------------------
-
-    create_transaction(
+    _increase_inventory(
         db=db,
-        inventory_id=inventory.id,
-        transaction_type=InventoryTransactionType.INCREASE,
-        quantity_before=before["quantity"],
-        quantity_delta=request.quantity,
-        quantity_after=after["quantity"],
-        reserved_quantity_before=before["reserved_quantity"],
-        reserved_quantity_after=after["reserved_quantity"],
-        available_quantity_before=before["available_quantity"],
-        available_quantity_after=after["available_quantity"],
-        created_by=current_user_id,
+        inventory=inventory,
+        quantity=request.quantity,
+        current_user_id=current_user_id,
         reason=request.reason,
         reference_type=request.reference_type,
         reference_id=request.reference_id,
@@ -482,6 +482,53 @@ def increase_inventory(
 
     return map_inventory(
         inventory,
+    )
+
+
+def _decrease_inventory(
+    db: Session,
+    inventory: Inventory,
+    quantity: int,
+    current_user_id: int,
+    reason: str | None = None,
+    reference_type: InventoryReferenceType | None = None,
+    reference_id: int | None = None,
+):
+    before = capture_inventory_state(
+        inventory,
+    )
+
+    inventory.quantity -= quantity
+
+    inventory.available_quantity = calculate_available_quantity(
+        inventory.quantity,
+        inventory.reserved_quantity,
+    )
+
+    update_inventory_audit(
+        inventory,
+        current_user_id,
+    )
+
+    after = capture_inventory_state(
+        inventory,
+    )
+
+    create_transaction(
+        db=db,
+        inventory_id=inventory.id,
+        transaction_type=InventoryTransactionType.DECREASE,
+        quantity_before=before["quantity"],
+        quantity_delta=-quantity,
+        quantity_after=after["quantity"],
+        reserved_quantity_before=before["reserved_quantity"],
+        reserved_quantity_after=after["reserved_quantity"],
+        available_quantity_before=before["available_quantity"],
+        available_quantity_after=after["available_quantity"],
+        created_by=current_user_id,
+        reason=reason,
+        reference_type=reference_type,
+        reference_id=reference_id,
     )
 
 
@@ -509,54 +556,11 @@ def decrease_inventory(
         request.quantity,
     )
 
-    # ---------------------------------------------------------
-    # Capture Before State
-    # ---------------------------------------------------------
-
-    before = capture_inventory_state(
-        inventory,
-    )
-
-    # ---------------------------------------------------------
-    # Apply Inventory Decrease
-    # ---------------------------------------------------------
-
-    inventory.quantity -= request.quantity
-
-    inventory.available_quantity = calculate_available_quantity(
-        inventory.quantity,
-        inventory.reserved_quantity,
-    )
-
-    update_inventory_audit(
-        inventory,
-        current_user_id,
-    )
-
-    # ---------------------------------------------------------
-    # Capture After State
-    # ---------------------------------------------------------
-
-    after = capture_inventory_state(
-        inventory,
-    )
-
-    # ---------------------------------------------------------
-    # Record Transaction
-    # ---------------------------------------------------------
-
-    create_transaction(
+    _decrease_inventory(
         db=db,
-        inventory_id=inventory.id,
-        transaction_type=InventoryTransactionType.DECREASE,
-        quantity_before=before["quantity"],
-        quantity_delta=-request.quantity,
-        quantity_after=after["quantity"],
-        reserved_quantity_before=before["reserved_quantity"],
-        reserved_quantity_after=after["reserved_quantity"],
-        available_quantity_before=before["available_quantity"],
-        available_quantity_after=after["available_quantity"],
-        created_by=current_user_id,
+        inventory=inventory,
+        quantity=request.quantity,
+        current_user_id=current_user_id,
         reason=request.reason,
         reference_type=request.reference_type,
         reference_id=request.reference_id,
@@ -575,35 +579,20 @@ def decrease_inventory(
     )
 
 
-def reserve_inventory(
+def _reserve_inventory(
     db: Session,
-    inventory_id: int,
-    request: InventoryReserveRequest,
+    inventory: Inventory,
+    quantity: int,
     current_user_id: int,
+    reason: str | None = None,
+    reference_type: InventoryReferenceType | None = None,
+    reference_id: int | None = None,
 ):
-    inventory = validate_inventory_exists(
-        db,
-        inventory_id,
-    )
-
-    validate_inventory_is_active(
-        inventory,
-    )
-
-    validate_inventory_reservation(
-        inventory,
-        request.quantity,
-    )
-
     before = capture_inventory_state(
         inventory,
     )
 
-    # ---------------------------------------------------------
-    # Apply Reservation
-    # ---------------------------------------------------------
-
-    inventory.reserved_quantity += request.quantity
+    inventory.reserved_quantity += quantity
 
     inventory.available_quantity = calculate_available_quantity(
         inventory.quantity,
@@ -631,13 +620,43 @@ def reserve_inventory(
         available_quantity_before=before["available_quantity"],
         available_quantity_after=after["available_quantity"],
         created_by=current_user_id,
+        reason=reason,
+        reference_type=reference_type,
+        reference_id=reference_id,
+    )
+
+
+def reserve_inventory(
+    db: Session,
+    inventory_id: int,
+    request: InventoryReserveRequest,
+    current_user_id: int,
+):
+    inventory = validate_inventory_exists(
+        db,
+        inventory_id,
+    )
+
+    validate_inventory_is_active(
+        inventory,
+    )
+
+    validate_inventory_reservation(
+        inventory,
+        request.quantity,
+    )
+
+    _reserve_inventory(
+        db=db,
+        inventory=inventory,
+        quantity=request.quantity,
+        current_user_id=current_user_id,
         reason=request.reason,
         reference_type=request.reference_type,
         reference_id=request.reference_id,
     )
 
     db.commit()
-
     db.refresh(
         inventory,
     )
@@ -646,6 +665,53 @@ def reserve_inventory(
 
     return map_inventory(
         inventory,
+    )
+
+
+def _release_inventory(
+    db: Session,
+    inventory: Inventory,
+    quantity: int,
+    current_user_id: int,
+    reason: str | None = None,
+    reference_type: InventoryReferenceType | None = None,
+    reference_id: int | None = None,
+):
+    before = capture_inventory_state(
+        inventory,
+    )
+
+    inventory.reserved_quantity -= quantity
+
+    inventory.available_quantity = calculate_available_quantity(
+        inventory.quantity,
+        inventory.reserved_quantity,
+    )
+
+    update_inventory_audit(
+        inventory,
+        current_user_id,
+    )
+
+    after = capture_inventory_state(
+        inventory,
+    )
+
+    create_transaction(
+        db=db,
+        inventory_id=inventory.id,
+        transaction_type=InventoryTransactionType.RELEASE,
+        quantity_before=before["quantity"],
+        quantity_delta=0,
+        quantity_after=after["quantity"],
+        reserved_quantity_before=before["reserved_quantity"],
+        reserved_quantity_after=after["reserved_quantity"],
+        available_quantity_before=before["available_quantity"],
+        available_quantity_after=after["available_quantity"],
+        created_by=current_user_id,
+        reason=reason,
+        reference_type=reference_type,
+        reference_id=reference_id,
     )
 
 
@@ -673,61 +739,17 @@ def release_inventory(
         request.quantity,
     )
 
-    # ---------------------------------------------------------
-    # Capture Before State
-    # ---------------------------------------------------------
-
-    before = capture_inventory_state(
-        inventory,
-    )
-
-    # ---------------------------------------------------------
-    # Release Inventory
-    # ---------------------------------------------------------
-
-    inventory.reserved_quantity -= request.quantity
-
-    inventory.available_quantity = calculate_available_quantity(
-        inventory.quantity,
-        inventory.reserved_quantity,
-    )
-
-    update_inventory_audit(
-        inventory,
-        current_user_id,
-    )
-
-    # ---------------------------------------------------------
-    # Capture After State
-    # ---------------------------------------------------------
-
-    after = capture_inventory_state(
-        inventory,
-    )
-
-    # ---------------------------------------------------------
-    # Record Transaction
-    # ---------------------------------------------------------
-
-    create_transaction(
+    _release_inventory(
         db=db,
-        inventory_id=inventory.id,
-        transaction_type=InventoryTransactionType.RELEASE,
-        quantity_before=before["quantity"],
-        quantity_delta=0,
-        quantity_after=after["quantity"],
-        reserved_quantity_before=before["reserved_quantity"],
-        reserved_quantity_after=after["reserved_quantity"],
-        available_quantity_before=before["available_quantity"],
-        available_quantity_after=after["available_quantity"],
-        created_by=current_user_id,
+        inventory=inventory,
+        quantity=request.quantity,
+        current_user_id=current_user_id,
         reason=request.reason,
         reference_type=request.reference_type,
         reference_id=request.reference_id,
     )
 
     db.commit()
-
     db.refresh(
         inventory,
     )
@@ -741,41 +763,22 @@ def release_inventory(
     )
 
 
-def adjust_inventory(
+def _adjust_inventory(
     db: Session,
-    inventory_id: int,
-    request: InventoryAdjustRequest,
+    inventory: Inventory,
+    quantity: int,
     current_user_id: int,
+    reason: str | None = None,
+    reference_type: InventoryReferenceType | None = None,
+    reference_id: int | None = None,
 ):
-    inventory = validate_inventory_exists(
-        db,
-        inventory_id,
-    )
-
-    validate_inventory_is_active(
-        inventory,
-    )
-
-    validate_inventory_adjustment(
-        inventory,
-        request.quantity,
-    )
-
     before = capture_inventory_state(
         inventory,
     )
 
-    # ---------------------------------------------------------
-    # Calculate Delta
-    # ---------------------------------------------------------
+    quantity_delta = quantity - inventory.quantity
 
-    quantity_delta = request.quantity - inventory.quantity
-
-    # ---------------------------------------------------------
-    # Apply Adjustment
-    # ---------------------------------------------------------
-
-    inventory.quantity = request.quantity
+    inventory.quantity = quantity
 
     inventory.available_quantity = calculate_available_quantity(
         inventory.quantity,
@@ -803,20 +806,52 @@ def adjust_inventory(
         available_quantity_before=before["available_quantity"],
         available_quantity_after=after["available_quantity"],
         created_by=current_user_id,
+        reason=reason,
+        reference_type=reference_type,
+        reference_id=reference_id,
+    )
+
+
+def adjust_inventory(
+    db: Session,
+    inventory_id: int,
+    request: InventoryAdjustRequest,
+    current_user_id: int,
+):
+    inventory = validate_inventory_exists(
+        db,
+        inventory_id,
+    )
+
+    validate_inventory_is_active(
+        inventory,
+    )
+
+    validate_inventory_adjustment(
+        inventory,
+        request.quantity,
+    )
+
+    previous_quantity = inventory.quantity
+
+    _adjust_inventory(
+        db=db,
+        inventory=inventory,
+        quantity=request.quantity,
+        current_user_id=current_user_id,
         reason=request.reason,
         reference_type=request.reference_type,
         reference_id=request.reference_id,
     )
 
     db.commit()
-
     db.refresh(
         inventory,
     )
 
     logger.info(
         f"Inventory {inventory.id} adjusted from "
-        f"{before['quantity']} to {after['quantity']}."
+        f"{previous_quantity} to {request.quantity}."
     )
 
     return map_inventory(

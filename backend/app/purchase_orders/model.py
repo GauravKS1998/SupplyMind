@@ -126,6 +126,11 @@ class PurchaseOrder(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
+    goods_receipts = relationship(
+        "GoodsReceipt",
+        back_populates="purchase_order",
+    )
+
     supplier = relationship("Supplier")
     warehouse = relationship("Warehouse")
 

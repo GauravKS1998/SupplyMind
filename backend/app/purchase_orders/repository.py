@@ -33,16 +33,6 @@ def save_purchase_order(
     return purchase_order
 
 
-def delete_purchase_order_lines(
-    db: Session,
-    purchase_order_id: int,
-):
-
-    db.query(PurchaseOrderLine).filter(
-        PurchaseOrderLine.purchase_order_id == purchase_order_id
-    ).delete(synchronize_session=False)
-
-
 def find_purchase_order_by_id(
     db: Session,
     purchase_order_id: int,
@@ -58,6 +48,24 @@ def find_purchase_order_by_id(
             joinedload(PurchaseOrder.warehouse),
         )
         .filter(PurchaseOrder.id == purchase_order_id)
+        .first()
+    )
+
+
+def find_purchase_order_line_by_id(
+    db: Session,
+    purchase_order_line_id: int,
+):
+
+    return (
+        db.query(PurchaseOrderLine)
+        .options(
+            joinedload(PurchaseOrderLine.product).joinedload(Product.uom),
+            joinedload(PurchaseOrderLine.purchase_order),
+        )
+        .filter(
+            PurchaseOrderLine.id == purchase_order_line_id,
+        )
         .first()
     )
 
