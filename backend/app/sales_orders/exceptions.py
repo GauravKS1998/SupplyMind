@@ -1,36 +1,42 @@
 from app.exceptions.common import (
     NotFoundException,
-    AlreadyExistsException,
     BusinessException,
-    InternalServerException,
 )
-
-
-class SalesOrderAlreadyExistsException(AlreadyExistsException):
-    pass
 
 
 class SalesOrderNotFoundException(NotFoundException):
     pass
 
 
-class SalesOrderNotDraftedException(BusinessException):
+class SalesOrderLineNotFoundException(NotFoundException):
+
+    def __init__(self, sales_order_line_id: int):
+        super().__init__(
+            f"Sales Order Line with id '{sales_order_line_id}' was not found."
+        )
+
+
+class SalesOrderCannotBeModifiedException(BusinessException):
     pass
 
 
-class SalesOrderNotConfirmedException(BusinessException):
+class SalesOrderCannotBeConfirmedException(BusinessException):
     pass
 
 
-class SalesOrderNotReservedException(BusinessException):
+class SalesOrderCannotBeReservedException(BusinessException):
     pass
 
 
-class SalesOrderNotDispatchedException(BusinessException):
+class SalesOrderCannotBeDispatchedException(BusinessException):
     pass
 
 
-class SalesOrderNotDeliveredException(BusinessException):
+class SalesOrderCannotBeDeliveredException(BusinessException):
+    pass
+
+
+class SalesOrderCannotBeCompletedException(BusinessException):
     pass
 
 
@@ -38,9 +44,13 @@ class SalesOrderCannotBeCancelledException(BusinessException):
     pass
 
 
-class InsufficientStockException(BusinessException):
+class SalesOrderCannotBeReturnedException(BusinessException):
     pass
 
 
-class SalesOrderFailException(InternalServerException):
+class SalesOrderValidationException(BusinessException):
+    pass
+
+
+class InsufficientStockException(BusinessException):
     pass

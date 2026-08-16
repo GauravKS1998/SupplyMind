@@ -50,6 +50,28 @@ def find_duplicate_inventory(
     )
 
 
+def find_available_inventory_for_product(
+    db: Session,
+    product_id: int,
+    warehouse_id: int,
+    required_quantity: int,
+):
+    return (
+        inventory_query(db)
+        .filter(
+            Inventory.product_id == product_id,
+            Inventory.warehouse_id == warehouse_id,
+            Inventory.is_active.is_(True),
+            Inventory.available_quantity >= required_quantity,
+        )
+        .order_by(
+            Inventory.expiry_date.asc(),
+            Inventory.created_at.asc(),
+        )
+        .first()
+    )
+
+
 def find_all(db: Session):
     return inventory_query(db).order_by(Inventory.created_at.desc()).all()
 

@@ -60,6 +60,8 @@ from .validators import (
     validate_inventory_adjustment,
 )
 
+from .exceptions import InvalidReservedQuantityException
+
 
 def get_all_inventories(
     db: Session,
@@ -490,6 +492,7 @@ def _decrease_inventory(
     inventory: Inventory,
     quantity: int,
     current_user_id: int,
+    release_reserved: bool = False,
     reason: str | None = None,
     reference_type: InventoryReferenceType | None = None,
     reference_id: int | None = None,
@@ -499,6 +502,9 @@ def _decrease_inventory(
     )
 
     inventory.quantity -= quantity
+
+    if release_reserved:
+        inventory.reserved_quantity -= quantity
 
     inventory.available_quantity = calculate_available_quantity(
         inventory.quantity,
@@ -857,3 +863,125 @@ def adjust_inventory(
     return map_inventory(
         inventory,
     )
+
+
+def reserve_inventory_transaction(
+    db: Session,
+    inventory: Inventory,
+    quantity: int,
+    current_user_id: int,
+    reason: str | None = None,
+    reference_type: InventoryReferenceType | None = None,
+    reference_id: int | None = None,
+):
+    validate_inventory_is_active(
+        inventory,
+    )
+
+    validate_inventory_reservation(
+        inventory,
+        quantity,
+    )
+
+    _reserve_inventory(
+        db=db,
+        inventory=inventory,
+        quantity=quantity,
+        current_user_id=current_user_id,
+        reason=reason,
+        reference_type=reference_type,
+        reference_id=reference_id,
+    )
+
+    return inventory
+
+
+def release_inventory_transaction(
+    db: Session,
+    inventory: Inventory,
+    quantity: int,
+    current_user_id: int,
+    reason: str | None = None,
+    reference_type: InventoryReferenceType | None = None,
+    reference_id: int | None = None,
+):
+    validate_inventory_is_active(
+        inventory,
+    )
+
+    _release_inventory(
+        db=db,
+        inventory=inventory,
+        quantity=quantity,
+        current_user_id=current_user_id,
+        reason=reason,
+        reference_type=reference_type,
+        reference_id=reference_id,
+    )
+
+    return inventory
+
+
+def increase_inventory_transaction(
+    db: Session,
+    inventory: Inventory,
+    quantity: int,
+    current_user_id: int,
+    reason: str | None = None,
+    reference_type: InventoryReferenceType | None = None,
+    reference_id: int | None = None,
+):
+    validate_inventory_is_active(
+        inventory,
+    )
+
+    _increase_inventory(
+        db=db,
+        inventory=inventory,
+        quantity=quantity,
+        current_user_id=current_user_id,
+        reason=reason,
+        reference_type=reference_type,
+        reference_id=reference_id,
+    )
+
+    return inventory
+
+
+def decrease_inventory_transaction(
+    db: Session,
+    inventory: Inventory,
+    quantity: int,
+    current_user_id: int,
+    release_reserved: bool = False,
+    reason: str | None = None,
+    reference_type: InventoryReferenceType | None = None,
+    reference_id: int | None = None,
+):
+    validate_inventory_is_active(
+        inventory,
+    )
+
+    validate_inventory_decrease(
+        inventory,
+        quantity,
+    )
+
+    if release_reserved and inventory.reserved_quantity < quantity:
+        raise InvalidReservedQuantityException(
+            f"Reserved quantity '{inventory.reserved_quantity}' "
+            f"is less than dispatch quantity '{quantity}'."
+        )
+
+    _decrease_inventory(
+        db=db,
+        inventory=inventory,
+        quantity=quantity,
+        current_user_id=current_user_id,
+        release_reserved=release_reserved,
+        reason=reason,
+        reference_type=reference_type,
+        reference_id=reference_id,
+    )
+
+    return inventory
