@@ -18,9 +18,12 @@ from app.brands.model import Brand
 from app.units_of_measure.model import UnitOfMeasure
 from app.warehouses.model import Warehouse
 from app.inventories.model import Inventory
-from app.purchase_orders.model import PurchaseOrder
-from app.sales_orders.model import SalesOrder
-from app.stock_transfers.model import StockTransfer
+from app.inventory_transactions.model import InventoryTransaction
+from app.common.document_number.model import DocumentSequence
+from app.purchase_orders.model import PurchaseOrder, PurchaseOrderLine
+from app.sales_orders.model import SalesOrder, SalesOrderLine
+from app.stock_transfers.model import StockTransfer, StockTransferLine
+from app.goods_receipts.model import GoodsReceipt, GoodsReceiptLine
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

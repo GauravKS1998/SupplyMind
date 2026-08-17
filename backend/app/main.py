@@ -16,10 +16,10 @@ from app.warehouses.model import Warehouse
 from app.inventories.model import Inventory
 from app.inventory_transactions.model import InventoryTransaction
 from app.common.document_number.model import DocumentSequence
-from app.stock_transfers.model import StockTransfer
-from app.purchase_orders.model import PurchaseOrder
-from app.goods_receipts.model import GoodsReceipt
-from app.sales_orders.model import SalesOrder
+from app.purchase_orders.model import PurchaseOrder, PurchaseOrderLine
+from app.sales_orders.model import SalesOrder, SalesOrderLine
+from app.stock_transfers.model import StockTransfer, StockTransferLine
+from app.goods_receipts.model import GoodsReceipt, GoodsReceiptLine
 
 from app.dashboard.router import router as dashboard_router
 from app.categories.router import router as category_router
@@ -44,6 +44,7 @@ from app.middleware import RequestIDMiddleware
 from app.exceptions.handlers import register_exception_handlers
 from app.logging.middleware import LoggingMiddleware
 
+# remove after dev
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()

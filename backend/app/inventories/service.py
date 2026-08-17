@@ -1,6 +1,8 @@
 from math import ceil
 from datetime import datetime, timezone
 
+from decimal import Decimal
+
 from sqlalchemy.orm import Session
 
 from app.common.responses import PaginatedResponse
@@ -141,9 +143,9 @@ def create_inventory(
     request: InventoryCreateRequest,
     current_user_id: int,
 ):
-    # ---------------------------------------------------------
+    # ---------------------------------------------
     # Validate Master Data
-    # ---------------------------------------------------------
+    # ---------------------------------------------
 
     validate_product_exists(
         db,
@@ -155,9 +157,9 @@ def create_inventory(
         request.warehouse_id,
     )
 
-    # ---------------------------------------------------------
+    # ----------------------------------------------
     # Validate Duplicate Inventory
-    # ---------------------------------------------------------
+    # ----------------------------------------------
 
     validate_duplicate_inventory(
         db,
@@ -166,9 +168,9 @@ def create_inventory(
         request.batch_number,
     )
 
-    # ---------------------------------------------------------
+    # ----------------------------------------------
     # Validate Business Rules
-    # ---------------------------------------------------------
+    # ----------------------------------------------
 
     validate_quantity(
         request.quantity,
@@ -191,9 +193,9 @@ def create_inventory(
         request.expiry_date,
     )
 
-    # ---------------------------------------------------------
+    # ----------------------------------------------
     # Create Inventory
-    # ---------------------------------------------------------
+    # ----------------------------------------------
 
     inventory = Inventory(
         product_id=request.product_id,
@@ -219,15 +221,15 @@ def create_inventory(
         inventory,
     )
 
-    # ---------------------------------------------------------
+    # -----------------------------------------------
     # Flush so inventory.id is available
-    # ---------------------------------------------------------
+    # -----------------------------------------------
 
     db.flush()
 
-    # ---------------------------------------------------------
+    # -----------------------------------------------
     # Record Initial Inventory Transaction
-    # ---------------------------------------------------------
+    # -----------------------------------------------
 
     create_transaction(
         db=db,
@@ -246,12 +248,11 @@ def create_inventory(
         reference_id=inventory.id,
     )
 
-    # ---------------------------------------------------------
+    # ----------------------------------------------
     # Commit Once
-    # ---------------------------------------------------------
+    # ----------------------------------------------
 
     db.commit()
-
     db.refresh(inventory)
 
     logger.info(f"Inventory {inventory.id} created successfully.")
@@ -553,9 +554,9 @@ def decrease_inventory(
         inventory,
     )
 
-    # ---------------------------------------------------------
+    # -------------------------------------------------
     # Validate Business Rules
-    # ---------------------------------------------------------
+    # -------------------------------------------------
 
     validate_inventory_decrease(
         inventory,
@@ -980,6 +981,69 @@ def decrease_inventory_transaction(
         current_user_id=current_user_id,
         release_reserved=release_reserved,
         reason=reason,
+        reference_type=reference_type,
+        reference_id=reference_id,
+    )
+
+    return inventory
+
+
+def create_inventory_transaction(
+    db: Session,
+    product_id: int,
+    warehouse_id: int,
+    quantity: int,
+    unit_cost: Decimal,
+    reorder_level: int,
+    reorder_quantity: int,
+    batch_number: str,
+    manufacturing_date,
+    expiry_date,
+    storage_location: str | None,
+    current_user_id: int,
+    reason: str | None = None,
+    reference_type: InventoryReferenceType | None = None,
+    reference_id: int | None = None,
+):
+    inventory = Inventory(
+        product_id=product_id,
+        warehouse_id=warehouse_id,
+        quantity=quantity,
+        reserved_quantity=0,
+        available_quantity=calculate_available_quantity(
+            quantity,
+            0,
+        ),
+        unit_cost=unit_cost,
+        reorder_level=reorder_level,
+        reorder_quantity=reorder_quantity,
+        batch_number=batch_number,
+        manufacturing_date=manufacturing_date,
+        expiry_date=expiry_date,
+        storage_location=storage_location,
+        created_by=current_user_id,
+    )
+
+    save(
+        db,
+        inventory,
+    )
+
+    db.flush()
+
+    create_transaction(
+        db=db,
+        inventory_id=inventory.id,
+        transaction_type=InventoryTransactionType.CREATE,
+        quantity_before=0,
+        quantity_delta=quantity,
+        quantity_after=quantity,
+        reserved_quantity_before=0,
+        reserved_quantity_after=0,
+        available_quantity_before=0,
+        available_quantity_after=inventory.available_quantity,
+        created_by=current_user_id,
+        reason=reason or "Inventory created.",
         reference_type=reference_type,
         reference_id=reference_id,
     )
