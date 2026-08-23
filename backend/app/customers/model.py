@@ -168,4 +168,7 @@ class Customer(Base):
     # Relationship
     # ----------------------------------------------
 
-    user = relationship("User")
+    user = relationship(
+        "User",
+        foreign_keys=[user_id],
+    )

@@ -92,12 +92,8 @@ class InventoryTransaction(Base):
         nullable=False,
     )
 
+    # Many-to-One Relationship back to Inventory
     inventory = relationship(
         "Inventory",
         back_populates="transactions",
-    )
-
-    transactions = relationship(
-        "InventoryTransaction",
-        back_populates="inventory",
     )

@@ -1,4 +1,7 @@
-from datetime import datetime
+from __future__ import annotations
+
+from datetime import datetime, timezone
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     DateTime,
@@ -18,11 +21,10 @@ from sqlalchemy.orm import (
 from app.database.database import Base
 from app.goods_receipts.enums import GoodsReceiptStatus
 from app.products.model import Product
-from app.purchase_orders.model import (
-    PurchaseOrder,
-    PurchaseOrderLine,
-)
 from app.warehouses.model import Warehouse
+
+if TYPE_CHECKING:
+    from app.purchase_orders.model import PurchaseOrder, PurchaseOrderLine
 
 
 class GoodsReceipt(Base):
@@ -90,17 +92,18 @@ class GoodsReceipt(Base):
     )
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime,
+        DateTime(timezone=True),
         nullable=False,
-        default=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
     )
 
     updated_at: Mapped[datetime | None] = mapped_column(
-        DateTime,
-        onupdate=datetime.utcnow,
+        DateTime(timezone=True),
+        onupdate=lambda: datetime.now(timezone.utc),
     )
 
     purchase_order: Mapped["PurchaseOrder"] = relationship(
+        "PurchaseOrder",
         back_populates="goods_receipts",
     )
 
@@ -190,9 +193,12 @@ class GoodsReceiptLine(Base):
     remarks: Mapped[str | None] = mapped_column(Text)
 
     goods_receipt: Mapped["GoodsReceipt"] = relationship(
+        "GoodsReceipt",
         back_populates="lines",
     )
 
-    purchase_order_line: Mapped["PurchaseOrderLine"] = relationship()
+    purchase_order_line: Mapped["PurchaseOrderLine"] = relationship(
+        "PurchaseOrderLine",
+    )
 
     product: Mapped["Product"] = relationship()

@@ -5,7 +5,6 @@ from sqlalchemy import (
     ForeignKey,
     String,
     DateTime,
-    Float,
     Numeric,
 )
 
@@ -14,6 +13,8 @@ from decimal import Decimal
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from datetime import date, datetime, timezone
+
+from app.inventory_transactions.model import InventoryTransaction
 
 from app.database.database import Base
 
@@ -81,5 +82,12 @@ class Inventory(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
+    # Relationships
     product = relationship("Product")
     warehouse = relationship("Warehouse")
+
+    # One-to-Many Relationship to Transactions
+    transactions: Mapped[list[InventoryTransaction]] = relationship(
+        "InventoryTransaction",
+        back_populates="inventory",
+    )

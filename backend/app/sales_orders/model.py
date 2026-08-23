@@ -175,6 +175,7 @@ class SalesOrder(Base):
 
     customer = relationship(
         "User",
+        foreign_keys=[customer_id],
     )
 
     warehouse = relationship(

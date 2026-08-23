@@ -17,7 +17,9 @@ class Supplier(Base):
 
     company_name: Mapped[str] = mapped_column(String(255))
 
-    gst_number: Mapped[str] = mapped_column(String(100), unique=True)
+    gst_number: Mapped[str | None] = mapped_column(
+        String(100), unique=True, nullable=True
+    )
 
     contact_person: Mapped[str] = mapped_column(String(255))
 
@@ -25,21 +27,21 @@ class Supplier(Base):
 
     email: Mapped[str] = mapped_column(String(255))
 
-    address: Mapped[str] = mapped_column(String(500))
+    address: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
-    city: Mapped[str] = mapped_column(String(100))
+    city: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
-    state: Mapped[str] = mapped_column(String(100))
+    state: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
-    country: Mapped[str] = mapped_column(String(100))
+    country: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
-    postal_code: Mapped[str] = mapped_column(String(20))
+    postal_code: Mapped[str | None] = mapped_column(String(20), nullable=True)
 
-    supplier_type: Mapped[str] = mapped_column(String(100))
+    supplier_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
-    lead_time_days: Mapped[int] = mapped_column(Integer)
+    lead_time_days: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
-    payment_terms: Mapped[str] = mapped_column(String(100))
+    payment_terms: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
     rating: Mapped[float] = mapped_column(Float, default=0.0)
 
@@ -73,4 +75,7 @@ class Supplier(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
-    user = relationship("User")
+    user = relationship(
+        "User",
+        foreign_keys=[user_id],
+    )

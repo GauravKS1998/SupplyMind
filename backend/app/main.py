@@ -21,6 +21,8 @@ from app.sales_orders.model import SalesOrder, SalesOrderLine
 from app.stock_transfers.model import StockTransfer, StockTransferLine
 from app.goods_receipts.model import GoodsReceipt, GoodsReceiptLine
 
+from app.auth.router import router as auth_router
+from app.users.router import router as user_router
 from app.dashboard.router import router as dashboard_router
 from app.categories.router import router as category_router
 from app.subcategories.router import router as subcategory_router
@@ -61,6 +63,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(auth_router, prefix="/auth", tags=["Auth"])
+
+app.include_router(user_router, prefix="/user", tags=["User"])
 
 app.include_router(dashboard_router, prefix="/dashboard", tags=["Dashboard"])
 

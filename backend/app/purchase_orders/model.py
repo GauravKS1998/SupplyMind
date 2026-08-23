@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     DateTime,
@@ -16,6 +17,9 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.database import Base
 from .enums import PurchaseOrderStatus
+
+if TYPE_CHECKING:
+    from app.goods_receipts.model import GoodsReceipt
 
 
 class PurchaseOrder(Base):
@@ -126,7 +130,7 @@ class PurchaseOrder(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
-    goods_receipts = relationship(
+    goods_receipts: Mapped[list["GoodsReceipt"]] = relationship(
         "GoodsReceipt",
         back_populates="purchase_order",
     )
@@ -134,7 +138,7 @@ class PurchaseOrder(Base):
     supplier = relationship("Supplier")
     warehouse = relationship("Warehouse")
 
-    lines = relationship(
+    lines: Mapped[list[PurchaseOrderLine]] = relationship(
         "PurchaseOrderLine",
         back_populates="purchase_order",
         cascade="all, delete-orphan",
