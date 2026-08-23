@@ -1,28 +1,43 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 
 from sqlalchemy.orm import Session
 
 from app.database.database import get_db
 
-from .schema import LoginRequest
+from .schema import (
+    LoginRequest,
+    SignupRequest,
+)
 
 from .service import (
     login_user,
-)
-
-from .exceptions import (
-    InvalidCredentialsException,
-    AccountPendingApprovalException,
+    signup_user,
 )
 
 router = APIRouter()
 
+# ==========================
+# Login
+# ==========================
+
 
 @router.post("/login")
-def login(request: LoginRequest, db: Session = Depends(get_db)):
-    try:
-        return login_user(db, request)
-    except InvalidCredentialsException as e:
-        raise HTTPException(status_code=401, detail=str(e))
-    except AccountPendingApprovalException as e:
-        raise HTTPException(status_code=403, detail=str(e))
+def login(
+    request: LoginRequest,
+    db: Session = Depends(get_db),
+):
+
+    return login_user(db, request)
+
+
+# ==========================
+# Public Signup
+# ==========================
+
+
+@router.post("/signup")
+def signup(
+    request: SignupRequest,
+    db: Session = Depends(get_db),
+):
+    return signup_user(db, request)

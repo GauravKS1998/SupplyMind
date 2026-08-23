@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 
 from sqlalchemy.orm import Session
 
@@ -6,11 +6,9 @@ from app.auth.dependencies import require_roles, get_current_user
 from app.users.enums import UserRole
 from app.database.database import get_db
 
-from app.common.responses import PaginatedResponse
-
 from .schema import (
-    ExternalRegisterRequest,
     InternalUserCreateRequest,
+    RejectUserRequest,
     UserSearchRequest,
     ChangeUserRoleRequest,
     UpdateProfileRequest,
@@ -18,9 +16,9 @@ from .schema import (
 )
 
 from .service import (
+    reject_user,
     search_users,
     get_user_by_id,
-    register_external_user,
     create_internal_user,
     approve_user,
     activate_user,
@@ -29,11 +27,6 @@ from .service import (
     get_my_profile,
     update_my_profile,
     change_password,
-)
-
-from .exceptions import (
-    UserAlreadyExistsException,
-    UserNotFoundException,
 )
 
 router = APIRouter()
@@ -101,12 +94,19 @@ def search(
     )
 
 
-@router.post("/register")
-def register(request: ExternalRegisterRequest, db: Session = Depends(get_db)):
-    try:
-        return register_external_user(db, request)
-    except UserAlreadyExistsException as e:
-        raise HTTPException(status_code=400, detail=str(e))
+@router.get(
+    "/{user_id}",
+    dependencies=[Depends(require_roles(*READ_ROLES))],
+)
+def fetch_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    return get_user_by_id(
+        db,
+        user_id,
+    )
 
 
 @router.post("/register/internal")
@@ -115,27 +115,42 @@ def register_internal(
     db: Session = Depends(get_db),
     current_user=Depends(require_roles(*MANAGEMENT_ROLES)),
 ):
-    try:
-        return create_internal_user(db, request)
-    except UserAlreadyExistsException as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    return create_internal_user(
+        db,
+        request,
+        current_user["user_id"],
+    )
 
 
-@router.put("/approve/{email}")
+@router.patch("/{user_id}/approve")
 def approve(
-    email: str,
+    user_id: int,
     db: Session = Depends(get_db),
     current_user=Depends(require_roles(*MANAGEMENT_ROLES)),
 ):
-    try:
-        return approve_user(db, email)
-    except UserNotFoundException as e:
-        raise HTTPException(status_code=404, detail=str(e))
+    return approve_user(
+        db,
+        user_id,
+        current_user["user_id"],
+    )
 
 
-@router.patch(
-    "/{user_id}/activate",
-)
+@router.patch("/{user_id}/reject")
+def reject(
+    user_id: int,
+    request: RejectUserRequest,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_roles(*MANAGEMENT_ROLES)),
+):
+    return reject_user(
+        db,
+        user_id,
+        current_user["user_id"],
+        request,
+    )
+
+
+@router.patch("/{user_id}/activate")
 def activate(
     user_id: int,
     db: Session = Depends(get_db),
@@ -144,12 +159,11 @@ def activate(
     return activate_user(
         db,
         user_id,
+        current_user["user_id"],
     )
 
 
-@router.patch(
-    "/{user_id}/deactivate",
-)
+@router.patch("/{user_id}/deactivate")
 def deactivate(
     user_id: int,
     db: Session = Depends(get_db),
@@ -162,9 +176,7 @@ def deactivate(
     )
 
 
-@router.patch(
-    "/{user_id}/change-role",
-)
+@router.patch("/{user_id}/change-role")
 def change_role(
     user_id: int,
     request: ChangeUserRoleRequest,

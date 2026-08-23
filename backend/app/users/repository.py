@@ -1,7 +1,5 @@
 from sqlalchemy.orm import Session
 
-from sqlalchemy import asc, desc
-
 from sqlalchemy import func
 
 from app.common.filtering import apply_filter
@@ -51,10 +49,11 @@ def count_active_super_admins(
 
 
 ALLOWED_SORT_FIELDS = {
-    "username",
+    "full_name",
     "email",
     "role",
     "approval_status",
+    "is_active",
     "created_at",
     "updated_at",
 }
@@ -92,7 +91,7 @@ def find_users(
     query = apply_search(
         query,
         [
-            User.username,
+            User.full_name,
             User.email,
         ],
         search,

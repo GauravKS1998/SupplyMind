@@ -1,16 +1,14 @@
-from sqlalchemy.orm import Session
+from datetime import datetime, timezone
 
-from app.auth.jwt import hash_password
+from sqlalchemy.orm import Session
 
 from math import ceil
 
 from app.common.responses import PaginatedResponse
 from app.common.pagination import PaginationMeta
 
-from app.common.entity_utils import get_or_raise
-
 from .model import User
-from .repository import find_by_email, save_user, find_users
+from .repository import save_user, find_users
 
 from app.logging.logger import logger
 
@@ -19,11 +17,11 @@ from app.auth.jwt import (
     verify_password,
 )
 
-from .enums import ApprovalStatus
+from .enums import ApprovalStatus, UserRole
 
 from .schema import (
-    ExternalRegisterRequest,
     InternalUserCreateRequest,
+    RejectUserRequest,
     UserSearchRequest,
     ChangeUserRoleRequest,
     UpdateProfileRequest,
@@ -32,19 +30,18 @@ from .schema import (
 
 from .mapper import map_user, map_users
 
-from .exceptions import UserNotFoundException, InvalidCredentialsException
+from .exceptions import InvalidUserStateException
+from app.auth.exceptions import InvalidCredentialsException
 
 from .validators import (
     validate_email_not_exists,
     validate_user_exists,
     validate_internal_role,
-    validate_external_role,
     validate_user_is_approved,
     validate_not_self,
     validate_not_last_super_admin,
     validate_role_not_same,
     validate_same_role_category,
-    validate_profile_email_available,
 )
 
 # ==========================
@@ -80,14 +77,8 @@ def update_my_profile(
         user_id,
     )
 
-    validate_profile_email_available(
-        db,
-        user_id,
-        request.email,
-    )
-
-    user.username = request.username
-    user.email = request.email
+    user.full_name = request.full_name
+    user.phone = request.phone
 
     db.commit()
     db.refresh(user)
@@ -182,42 +173,15 @@ def search_users(
     )
 
 
-def register_external_user(
-    db: Session,
-    request: ExternalRegisterRequest,
-):
-    validate_email_not_exists(
-        db,
-        request.email,
-    )
-
-    validate_external_role(
-        request.role,
-    )
-
-    user = User(
-        username=request.username,
-        email=request.email,
-        password=hash_password(
-            request.password,
-        ),
-        role=request.role,
-        approval_status=ApprovalStatus.PENDING,
-    )
-
-    saved_user = save_user(db, user)
-
-    db.commit()
-    db.refresh(saved_user)
-
-    logger.info(f"External User {saved_user.email} registered successfully")
-
-    return map_user(saved_user)
+# ==========================
+# Internal User Creation
+# ==========================
 
 
 def create_internal_user(
     db: Session,
     request: InternalUserCreateRequest,
+    current_user_id: int,
 ):
     validate_email_not_exists(
         db,
@@ -229,14 +193,14 @@ def create_internal_user(
     )
 
     user = User(
-        username=request.username,
+        full_name=request.full_name,
         email=request.email,
-        password=hash_password(
-            request.password,
-        ),
+        phone=request.phone,
+        password_hash=hash_password(request.password),
         role=request.role,
-        approval_status=request.approval_status,
-        is_active=request.is_active,
+        approval_status=ApprovalStatus.APPROVED,
+        is_active=True,
+        created_by=current_user_id,
     )
 
     saved_user = save_user(db, user)
@@ -244,33 +208,95 @@ def create_internal_user(
     db.commit()
     db.refresh(saved_user)
 
-    logger.info(f"Internal user '{saved_user.email}' created successfully.")
+    logger.info(
+        f"Internal user '{saved_user.email}' " f"created by user id={current_user_id}."
+    )
 
     return map_user(saved_user)
 
 
+# ==========================
+# Approve
+# ==========================
+
+
 def approve_user(
     db: Session,
-    user_email: str,
+    user_id: int,
+    current_user_id: int,
 ):
 
-    user = get_or_raise(
-        find_by_email(db, user_email), UserNotFoundException("User not found.")
+    user = validate_user_exists(
+        db,
+        user_id,
     )
 
+    if user.approval_status == ApprovalStatus.APPROVED:
+        return {"message": "User is already approved."}
+
     user.approval_status = ApprovalStatus.APPROVED
+
+    user.is_active = True
+
+    user.approved_by = current_user_id
+    user.approved_at = datetime.now(timezone.utc)
+
+    user.rejected_by = None
+    user.rejected_at = None
+    user.rejection_reason = None
 
     db.commit()
     db.refresh(user)
 
-    logger.info(f"User '{user.email}' approved successfully.")
+    logger.info(f"User '{user.email}' approved by " f"user id={current_user_id}.")
 
     return {"message": "User approved successfully"}
+
+
+# ==========================
+# Reject
+# ==========================
+
+
+def reject_user(
+    db: Session,
+    user_id: int,
+    current_user_id: int,
+    request: RejectUserRequest,
+):
+
+    user = validate_user_exists(
+        db,
+        user_id,
+    )
+
+    if user.approval_status != ApprovalStatus.PENDING:
+        raise InvalidUserStateException("Only pending users can be rejected.")
+
+    user.approval_status = ApprovalStatus.REJECTED
+    user.is_active = False
+
+    user.rejected_by = current_user_id
+    user.rejected_at = datetime.now(timezone.utc)
+    user.rejection_reason = request.reason
+
+    db.commit()
+    db.refresh(user)
+
+    logger.info(f"User '{user.email}' rejected by " f"user id={current_user_id}.")
+
+    return {"message": "User rejected successfully."}
+
+
+# ==========================
+# Activate
+# ==========================
 
 
 def activate_user(
     db: Session,
     user_id: int,
+    current_user_id: int,
 ):
     logger.info(f"Activating user id={user_id}")
 
@@ -279,14 +305,16 @@ def activate_user(
         user_id,
     )
 
-    if user.is_active:
-        return {"message": "User is already active."}
-
     validate_user_is_approved(
         user,
     )
 
+    if user.is_active:
+        return {"message": "User is already active."}
+
     user.is_active = True
+    user.reactivated_by = current_user_id
+    user.reactivated_at = datetime.now(timezone.utc)
 
     db.commit()
     db.refresh(user)
@@ -294,6 +322,11 @@ def activate_user(
     logger.info(f"User '{user.email}' activated successfully.")
 
     return {"message": "User activated successfully."}
+
+
+# ==========================
+# Deactivate
+# ==========================
 
 
 def deactivate_user(
@@ -322,6 +355,8 @@ def deactivate_user(
     )
 
     user.is_active = False
+    user.deactivated_by = current_user_id
+    user.deactivated_at = datetime.now(timezone.utc)
 
     db.commit()
     db.refresh(user)
@@ -354,6 +389,11 @@ def change_user_role(
         user,
     )
 
+    validate_same_role_category(
+        user.role,
+        request.role,
+    )
+
     role_check = validate_role_not_same(
         user,
         request.role,
@@ -361,11 +401,6 @@ def change_user_role(
 
     if role_check:
         return role_check
-
-    validate_same_role_category(
-        user.role,
-        request.role,
-    )
 
     user.role = request.role
 

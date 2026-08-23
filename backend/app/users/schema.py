@@ -1,55 +1,103 @@
-from pydantic import BaseModel, EmailStr
-
 from datetime import datetime
 
-from app.common.pagination import PaginationRequest, PaginationMeta
-from app.common.responses import PaginatedResponse
+from pydantic import BaseModel, EmailStr
+
+from app.common.pagination import PaginationRequest
 
 from .enums import UserRole, ApprovalStatus
 
-
-class ExternalRegisterRequest(BaseModel):
-    username: str
-    email: EmailStr
-    password: str
-    role: UserRole
+# ==========================
+# Internal User Creation
+# ==========================
 
 
 class InternalUserCreateRequest(BaseModel):
-    username: str
+    full_name: str
+
     email: EmailStr
+    phone: str | None = None
+
     password: str
+
     role: UserRole
-    approval_status: ApprovalStatus
-    is_active: bool = True
+
+
+# ==========================
+# User Response
+# ==========================
 
 
 class UserResponse(BaseModel):
     id: int
-    username: str
+
+    full_name: str
+
     email: EmailStr
+    phone: str | None
+
     role: UserRole
     approval_status: ApprovalStatus
+
     is_active: bool
+
+    approved_by: int | None
+    approved_at: datetime | None
+
+    rejected_by: int | None
+    rejected_at: datetime | None
+    rejection_reason: str | None
+
+    created_by: int | None
     created_at: datetime
+
     updated_at: datetime
+
+
+# ==========================
+# Search
+# ==========================
 
 
 class UserSearchRequest(PaginationRequest):
     role: UserRole | None = None
+
     approval_status: ApprovalStatus | None = None
     is_active: bool | None = None
+
+
+# ==========================
+# Profile
+# ==========================
+
+
+class UpdateProfileRequest(BaseModel):
+    full_name: str
+    phone: str | None = None
+
+
+# ==========================
+# Password
+# ==========================
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+
+# ==========================
+# Role
+# ==========================
 
 
 class ChangeUserRoleRequest(BaseModel):
     role: UserRole
 
 
-class UpdateProfileRequest(BaseModel):
-    username: str
-    email: EmailStr
+# ==========================
+# Approval
+# ==========================
 
 
-class ChangePasswordRequest(BaseModel):
-    current_password: str
-    new_password: str
+class RejectUserRequest(BaseModel):
+    reason: str

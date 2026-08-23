@@ -1,10 +1,24 @@
-class AuthException(Exception):
+from app.exceptions.common import (
+    ForbiddenException,
+    UnauthorizedException,
+)
+
+
+class InvalidCredentialsException(UnauthorizedException):
     pass
 
 
-class InvalidCredentialsException(AuthException):
+class AccountPendingApprovalException(ForbiddenException):
     pass
 
 
-class AccountPendingApprovalException(AuthException):
+class AccountNotApprovedException(ForbiddenException):
+    pass
+
+
+class AccountInactiveException(ForbiddenException):
+    pass
+
+
+class InvalidSignupRoleException(ForbiddenException):
     pass

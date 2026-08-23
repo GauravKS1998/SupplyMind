@@ -31,7 +31,7 @@ def validate_email_not_exists(
     )
 
     if existing_user:
-        raise UserAlreadyExistsException("Email already exists.")
+        raise UserAlreadyExistsException("An account with this email already exists.")
 
 
 def validate_user_exists(
@@ -39,24 +39,27 @@ def validate_user_exists(
     user_id: int,
 ):
     user = get_or_raise(
-        find_by_id(db, user_id), UserNotFoundException("User not found.")
+        find_by_id(db, user_id), UserNotFoundException(f"User '{user_id}' not found.")
     )
 
     return user
 
 
 def validate_internal_role(
-    role,
+    role: UserRole,
 ):
     if role not in INTERNAL_ROLES:
         raise InvalidRoleException("Invalid internal role.")
 
 
 def validate_external_role(
-    role,
+    role: UserRole,
 ):
     if role not in EXTERNAL_ROLES:
-        raise InvalidRoleException("Invalid external role.")
+        raise InvalidRoleException(
+            "Only SUPPLIER and CUSTOMER accounts "
+            "can be created through public signup."
+        )
 
 
 def validate_email_available(
@@ -98,7 +101,7 @@ def validate_not_self(
     target_user_id: int,
 ):
     if current_user_id == target_user_id:
-        raise InvalidUserStateException("You cannot deactivate your own account.")
+        raise InvalidUserStateException("You cannot modify your own account.")
 
 
 def validate_role_not_same(

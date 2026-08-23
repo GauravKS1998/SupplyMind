@@ -32,7 +32,6 @@ class ConflictException(BaseAPIException):
 
 
 class AlreadyExistsException(ConflictException):
-
     pass
 
 

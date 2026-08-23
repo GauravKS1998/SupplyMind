@@ -2,7 +2,6 @@ from app.exceptions.common import (
     AlreadyExistsException,
     BusinessException,
     NotFoundException,
-    UnauthorizedException,
 )
 
 
@@ -15,10 +14,6 @@ class InvalidUserStateException(BusinessException):
 
 
 class InvalidRoleException(BusinessException):
-    pass
-
-
-class InvalidCredentialsException(UnauthorizedException):
     pass
 
 
