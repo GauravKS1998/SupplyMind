@@ -73,7 +73,7 @@ def login_user(
         {
             "sub": user.email,
             "user_id": user.id,
-            "role": user.role.value,
+            "role": user.role,
         }
     )
 

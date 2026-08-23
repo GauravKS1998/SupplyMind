@@ -8,7 +8,11 @@ engine = create_engine(  # This creates the connection mechanism to PostgreSQL.
     DATABASE_URL, echo=True  # prints SQL statements in the terminal
 )
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine,
+)
 
 Base = (
     declarative_base()

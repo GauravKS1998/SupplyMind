@@ -1,6 +1,8 @@
 from .model import User
 from .schema import UserResponse
 
+from .enums import ApprovalStatus, UserRole
+
 
 def map_user(
     user: User,
@@ -11,8 +13,12 @@ def map_user(
         full_name=user.full_name,
         email=user.email,
         phone=user.phone,
-        role=user.role,
-        approval_status=user.approval_status,
+        role=UserRole(user.role) if isinstance(user.role, str) else user.role,
+        approval_status=(
+            ApprovalStatus(user.approval_status)
+            if isinstance(user.approval_status, str)
+            else user.approval_status
+        ),
         is_active=user.is_active,
         approved_by=user.approved_by,
         approved_at=user.approved_at,
