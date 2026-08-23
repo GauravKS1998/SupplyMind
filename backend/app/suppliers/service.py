@@ -163,7 +163,7 @@ def create_supplier(
 ):
     existing_user_supplier = find_by_user_id(
         db,
-        request.user_id,
+        current_user_id,
     )
 
     if existing_user_supplier:

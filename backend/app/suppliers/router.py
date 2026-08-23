@@ -30,6 +30,12 @@ from .service import (
     search_suppliers,
 )
 
+from .constants import (
+    READ_ROLES,
+    MANAGEMENT_ROLES,
+    APPROVAL_ROLES,
+)
+
 router = APIRouter()
 
 
@@ -58,16 +64,7 @@ def create(
 
 @router.post(
     "/search",
-    dependencies=[
-        Depends(
-            require_roles(
-                UserRole.ADMIN,
-                UserRole.SUPER_ADMIN,
-                UserRole.PROCUREMENT_MANAGER,
-                UserRole.INVENTORY_ANALYST,
-            )
-        )
-    ],
+    dependencies=[Depends(require_roles(*READ_ROLES))],
 )
 def search(
     request: SupplierSearchRequest,
@@ -86,16 +83,7 @@ def search(
 
 @router.get(
     "/",
-    dependencies=[
-        Depends(
-            require_roles(
-                UserRole.ADMIN,
-                UserRole.SUPER_ADMIN,
-                UserRole.PROCUREMENT_MANAGER,
-                UserRole.INVENTORY_ANALYST,
-            )
-        )
-    ],
+    dependencies=[Depends(require_roles(*READ_ROLES))],
 )
 def get_all(
     db: Session = Depends(get_db),
@@ -110,16 +98,7 @@ def get_all(
 
 @router.get(
     "/active",
-    dependencies=[
-        Depends(
-            require_roles(
-                UserRole.ADMIN,
-                UserRole.SUPER_ADMIN,
-                UserRole.PROCUREMENT_MANAGER,
-                UserRole.INVENTORY_ANALYST,
-            )
-        )
-    ],
+    dependencies=[Depends(require_roles(*READ_ROLES))],
 )
 def get_active(
     db: Session = Depends(get_db),
@@ -134,16 +113,7 @@ def get_active(
 
 @router.get(
     "/inactive",
-    dependencies=[
-        Depends(
-            require_roles(
-                UserRole.ADMIN,
-                UserRole.SUPER_ADMIN,
-                UserRole.PROCUREMENT_MANAGER,
-                UserRole.INVENTORY_ANALYST,
-            )
-        )
-    ],
+    dependencies=[Depends(require_roles(*READ_ROLES))],
 )
 def get_inactive(
     db: Session = Depends(get_db),
@@ -159,13 +129,7 @@ def get_inactive(
 @router.get("/pending")
 def get_pending(
     db: Session = Depends(get_db),
-    current_user=Depends(
-        require_roles(
-            UserRole.ADMIN,
-            UserRole.SUPER_ADMIN,
-            UserRole.PROCUREMENT_MANAGER,
-        )
-    ),
+    current_user=Depends(require_roles(*APPROVAL_ROLES)),
 ):
     return get_pending_suppliers(db)
 
@@ -193,16 +157,7 @@ def get_my_supplier_profile(
 
 @router.get(
     "/{supplier_id}",
-    dependencies=[
-        Depends(
-            require_roles(
-                UserRole.ADMIN,
-                UserRole.SUPER_ADMIN,
-                UserRole.PROCUREMENT_MANAGER,
-                UserRole.INVENTORY_ANALYST,
-            )
-        )
-    ],
+    dependencies=[Depends(require_roles(*READ_ROLES))],
 )
 def get_by_id(
     supplier_id: int,
@@ -243,13 +198,7 @@ def update(
 def verify(
     supplier_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(
-        require_roles(
-            UserRole.ADMIN,
-            UserRole.SUPER_ADMIN,
-            UserRole.PROCUREMENT_MANAGER,
-        )
-    ),
+    current_user=Depends(require_roles(*APPROVAL_ROLES)),
 ):
     return verify_supplier(
         db,
@@ -267,12 +216,7 @@ def verify(
 def deactivate(
     supplier_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(
-        require_roles(
-            UserRole.ADMIN,
-            UserRole.SUPER_ADMIN,
-        )
-    ),
+    current_user=Depends(require_roles(*MANAGEMENT_ROLES)),
 ):
     return deactivate_supplier(
         db,
@@ -290,12 +234,7 @@ def deactivate(
 def reactivate(
     supplier_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(
-        require_roles(
-            UserRole.ADMIN,
-            UserRole.SUPER_ADMIN,
-        )
-    ),
+    current_user=Depends(require_roles(*MANAGEMENT_ROLES)),
 ):
     return reactivate_supplier(
         db,

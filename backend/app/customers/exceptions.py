@@ -1,7 +1,8 @@
 from app.exceptions.common import (
-    NotFoundException,
     AlreadyExistsException,
-    InternalServerException,
+    BusinessException,
+    NotFoundException,
+    UnauthorizedException,
 )
 
 
@@ -13,5 +14,9 @@ class CustomerAlreadyExistsException(AlreadyExistsException):
     pass
 
 
-class CustomerFailException(InternalServerException):
+class CustomerAccessDeniedException(UnauthorizedException):
+    pass
+
+
+class InvalidCustomerStateException(BusinessException):
     pass
