@@ -45,7 +45,7 @@ from app.exceptions.handlers import register_exception_handlers
 from app.logging.middleware import LoggingMiddleware
 
 # remove after dev
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 

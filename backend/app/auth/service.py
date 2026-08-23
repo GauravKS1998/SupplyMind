@@ -3,8 +3,10 @@ from sqlalchemy.orm import Session
 from app.users.enums import ApprovalStatus, UserRole
 from app.users.model import User
 from app.users.repository import find_by_email
+from app.users.exceptions import UserAlreadyExistsException
 
 from app.suppliers.model import Supplier
+from app.customers.model import Customer
 
 from .exceptions import (
     AccountInactiveException,
@@ -13,8 +15,6 @@ from .exceptions import (
     InvalidCredentialsException,
     InvalidSignupRoleException,
 )
-
-from app.users.exceptions import UserAlreadyExistsException
 
 from .jwt import (
     create_access_token,
@@ -36,6 +36,11 @@ PUBLIC_SIGNUP_ROLES = {
 }
 
 
+# =========================================================
+# Login
+# =========================================================
+
+
 def login_user(
     db: Session,
     request: LoginRequest,
@@ -53,7 +58,7 @@ def login_user(
         request.password,
         user.password_hash,
     ):
-        raise InvalidCredentialsException("Invalid credentials")
+        raise InvalidCredentialsException("Invalid credentials.")
 
     if user.approval_status == ApprovalStatus.PENDING:
         raise AccountPendingApprovalException("Your account is pending approval.")
@@ -65,7 +70,11 @@ def login_user(
         raise AccountInactiveException("Your account is currently inactive.")
 
     access_token = create_access_token(
-        {"sub": user.email, "user_id": user.id, "role": user.role.value}
+        {
+            "sub": user.email,
+            "user_id": user.id,
+            "role": user.role.value,
+        }
     )
 
     return AuthResponse(
@@ -80,6 +89,11 @@ def login_user(
     )
 
 
+# =========================================================
+# Public Signup
+# =========================================================
+
+
 def signup_user(
     db: Session,
     request: SignupRequest,
@@ -87,7 +101,8 @@ def signup_user(
 
     if request.account_type not in PUBLIC_SIGNUP_ROLES:
         raise InvalidSignupRoleException(
-            "Only Supplier and Customer accounts can be created through public signup."
+            "Only Supplier and Customer accounts "
+            "can be created through public signup."
         )
 
     existing_user = find_by_email(
@@ -106,9 +121,7 @@ def signup_user(
             request.password,
         ),
         role=request.account_type,
-        # Public users must wait for approval.
         approval_status=ApprovalStatus.PENDING,
-        # Cannot login until approved.
         is_active=False,
     )
 
@@ -116,6 +129,10 @@ def signup_user(
 
     try:
         db.flush()
+
+        # -----------------------------------------
+        # Supplier
+        # -----------------------------------------
 
         if request.account_type == UserRole.SUPPLIER:
             supplier = Supplier(
@@ -128,8 +145,20 @@ def signup_user(
 
             db.add(supplier)
 
+        # -----------------------------------------
+        # Customer
+        # -----------------------------------------
+
         elif request.account_type == UserRole.CUSTOMER:
-            pass
+            customer = Customer(
+                user_id=user.id,
+                company_name=request.company_name,
+                contact_person=request.full_name,
+                phone=request.phone,
+                email=request.email,
+            )
+
+            db.add(customer)
 
         db.commit()
         db.refresh(user)
@@ -142,6 +171,7 @@ def signup_user(
         message=(
             "Account created successfully. "
             "Your account is pending approval. "
-            "You will be able to log in once your account is approved."
+            "You will be able to log in once your account "
+            "is approved."
         )
     )
