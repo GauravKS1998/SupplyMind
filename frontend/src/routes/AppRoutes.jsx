@@ -6,7 +6,7 @@ import LoginPage from "../pages/auth/LoginPage";
 import SignupPage from "../pages/auth/SignupPage";
 import LandingPage from "../pages/landing/LandingPage";
 import UsersPage from "../pages/users/UsersPage";
-import ProfilePlaceholder from "../pages/profile/ProfilePlaceholder";
+import ProfilePlaceholder from "../pages/profile/ProfilePage";
 
 import DashboardPage from "../pages/dashboard/DashboardPage";
 

@@ -561,11 +561,11 @@ const LoginPage = () => {
                         size="small"
                       >
                         {showPassword ? (
-                          <Visibility
+                          <VisibilityOff
                             sx={{ fontSize: 20, color: "text.secondary" }}
                           />
                         ) : (
-                          <VisibilityOff
+                          <Visibility
                             sx={{ fontSize: 20, color: "text.secondary" }}
                           />
                         )}
