@@ -389,6 +389,9 @@ def change_user_role(
         user,
     )
 
+    validate_internal_role(user.role)
+    validate_internal_role(request.role)
+
     validate_same_role_category(
         user.role,
         request.role,
