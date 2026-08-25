@@ -7,10 +7,13 @@ import {
   Avatar,
   Menu,
   MenuItem,
+  Chip,
   Divider,
   ListItemIcon,
   ListItemText,
 } from "@mui/material";
+
+import { useTheme } from "@mui/material/styles";
 
 import HubIcon from "@mui/icons-material/Hub";
 import LightModeIcon from "@mui/icons-material/LightMode";
@@ -24,9 +27,11 @@ import { useNavigate } from "react-router-dom";
 
 import { ColorModeContext } from "../../theme/ColorModeContext";
 import { logout } from "../../store/slices/authSlice";
+import { ROLE_LABELS } from "../../constants/userConstants";
 
 const Navbar = () => {
   const { mode, toggleTheme } = useContext(ColorModeContext);
+  const theme = useTheme();
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -47,23 +52,17 @@ const Navbar = () => {
 
   const handleProfile = () => {
     handleAccountClose();
-
     navigate("/app/profile");
   };
 
   const handleLogout = () => {
     handleAccountClose();
-
     dispatch(logout());
-
-    navigate("/login", {
-      replace: true,
-    });
+    navigate("/login", { replace: true });
   };
 
   const getInitials = (name) => {
     if (!name) return "?";
-
     return name
       .split(" ")
       .map((word) => word[0])
@@ -73,11 +72,13 @@ const Navbar = () => {
   };
 
   return (
-    <AppBar position="fixed" elevation={2}>
+    <AppBar position="fixed" elevation={0}>
       <Toolbar
         sx={{
           display: "flex",
           justifyContent: "space-between",
+          borderBottom: 1,
+          borderColor: "divider",
         }}
       >
         {/* Branding */}
@@ -88,11 +89,7 @@ const Navbar = () => {
             gap: 1.2,
           }}
         >
-          <HubIcon
-            sx={{
-              fontSize: 30,
-            }}
-          />
+          <HubIcon sx={{ fontSize: 30 }} />
 
           <Typography
             variant="h5"
@@ -110,7 +107,7 @@ const Navbar = () => {
           sx={{
             display: "flex",
             alignItems: "center",
-            gap: 0.5,
+            gap: 1,
           }}
         >
           {/* Theme Toggle */}
@@ -118,24 +115,33 @@ const Navbar = () => {
             color="inherit"
             onClick={toggleTheme}
             aria-label="Toggle theme"
+            sx={{
+              border: 1,
+              borderColor: "rgba(255, 255, 255, 0.3)",
+              borderRadius: 1.5,
+            }}
           >
-            {mode === "dark" ? <LightModeIcon /> : <DarkModeIcon />}
+            {mode === "dark" ? (
+              <LightModeIcon fontSize="small" />
+            ) : (
+              <DarkModeIcon fontSize="small" />
+            )}
           </IconButton>
 
           {/* Account */}
           <IconButton
-            color="inherit"
             onClick={handleAccountClick}
             aria-label="Account"
             aria-controls={accountOpen ? "account-menu" : undefined}
             aria-haspopup="true"
             aria-expanded={accountOpen ? "true" : undefined}
+            sx={{ p: 0.5 }}
           >
             <Avatar
               sx={{
                 width: 36,
                 height: 36,
-                fontSize: "0.9rem",
+                fontSize: "0.85rem",
                 fontWeight: 600,
               }}
             >
@@ -150,30 +156,36 @@ const Navbar = () => {
           anchorEl={accountAnchor}
           open={accountOpen}
           onClose={handleAccountClose}
-          anchorOrigin={{
-            vertical: "bottom",
-            horizontal: "right",
-          }}
-          transformOrigin={{
-            vertical: "top",
-            horizontal: "right",
-          }}
+          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+          transformOrigin={{ vertical: "top", horizontal: "right" }}
           slotProps={{
             paper: {
+              elevation: 3,
               sx: {
-                mt: 1,
-                minWidth: 260,
+                mt: 1.5,
+                minWidth: 280,
+                borderRadius: 2,
+                border: 1,
+                borderColor: "divider",
+                overflow: "hidden",
+
+                scrollbarWidth: "thin",
+                scrollbarColor: `${theme.palette.action.hover} transparent`,
+                "&::-webkit-scrollbar": { width: "6px" },
+                "&::-webkit-scrollbar-track": { background: "transparent" },
+                "&::-webkit-scrollbar-thumb": {
+                  backgroundColor: theme.palette.action.hover,
+                  borderRadius: "10px",
+                },
+                "&::-webkit-scrollbar-thumb:hover": {
+                  backgroundColor: theme.palette.action.selected,
+                },
               },
             },
           }}
         >
           {/* User Information */}
-          <Box
-            sx={{
-              px: 2,
-              py: 1.5,
-            }}
-          >
+          <Box sx={{ px: 2.5, py: 2 }}>
             <Box
               sx={{
                 display: "flex",
@@ -195,7 +207,8 @@ const Navbar = () => {
                 <Typography
                   variant="subtitle1"
                   sx={{
-                    fontWeight: 600,
+                    fontWeight: 700,
+                    lineHeight: 1.3,
                   }}
                 >
                   {user?.full_name || "User"}
@@ -206,6 +219,7 @@ const Navbar = () => {
                   color="text.secondary"
                   sx={{
                     wordBreak: "break-word",
+                    fontSize: "0.8rem",
                   }}
                 >
                   {user?.email || ""}
@@ -215,36 +229,49 @@ const Navbar = () => {
 
             {/* Role */}
             {user?.role && (
-              <Typography
-                variant="caption"
-                color="text.secondary"
+              <Chip
+                size="small"
+                variant="outlined"
+                label={ROLE_LABELS[user.role] || user.role}
                 sx={{
-                  display: "block",
-                  mt: 1,
+                  mt: 1.5,
+                  borderRadius: 1.5,
+                  fontWeight: 600,
+                  fontSize: "0.7rem",
                 }}
-              >
-                Role: {user.role}
-              </Typography>
+              />
             )}
           </Box>
 
           <Divider />
 
           {/* Profile */}
-          <MenuItem onClick={handleProfile}>
+          <MenuItem
+            onClick={handleProfile}
+            sx={{
+              mx: 1,
+              my: 0.5,
+              borderRadius: 1.5,
+            }}
+          >
             <ListItemIcon>
-              <PersonIcon fontSize="small" />
+              <PersonIcon fontSize="small" sx={{ color: "text.secondary" }} />
             </ListItemIcon>
-
             <ListItemText primary="Profile" />
           </MenuItem>
 
           {/* Logout */}
-          <MenuItem onClick={handleLogout}>
+          <MenuItem
+            onClick={handleLogout}
+            sx={{
+              mx: 1,
+              mb: 0.5,
+              borderRadius: 1.5,
+            }}
+          >
             <ListItemIcon>
-              <LogoutIcon fontSize="small" />
+              <LogoutIcon fontSize="small" sx={{ color: "text.secondary" }} />
             </ListItemIcon>
-
             <ListItemText primary="Log Out" />
           </MenuItem>
         </Menu>

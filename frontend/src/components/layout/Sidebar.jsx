@@ -10,6 +10,8 @@ import {
   Tooltip,
 } from "@mui/material";
 
+import { useSelector } from "react-redux";
+
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import MenuIcon from "@mui/icons-material/Menu";
@@ -25,6 +27,9 @@ const EXPANDED_WIDTH = 250;
 const COLLAPSED_WIDTH = 80;
 
 const Sidebar = () => {
+  const currentUser = useSelector((state) => state.auth.user);
+  const userRole = currentUser?.role;
+
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -55,6 +60,26 @@ const Sidebar = () => {
   const hasActiveChild = (children) => {
     return children?.some((child) => location.pathname === child.path);
   };
+
+  // Checks role permission
+  const hasAccess = (item) => {
+    if (!item.allowedRoles) return true;
+    return item.allowedRoles.includes(userRole);
+  };
+
+  // Filter menu items before rendering
+  const filteredMenuItems = menuItems
+    .filter(hasAccess)
+    .map((item) => {
+      if (item.children) {
+        return {
+          ...item,
+          children: item.children.filter(hasAccess),
+        };
+      }
+      return item;
+    })
+    .filter((item) => !item.children || item.children.length > 0);
 
   return (
     <Drawer
@@ -141,7 +166,7 @@ const Sidebar = () => {
           px: 1,
         }}
       >
-        {menuItems.map((item) => {
+        {filteredMenuItems.map((item) => {
           const hasChildren = Boolean(item.children);
 
           const activeParent = hasChildren
@@ -200,9 +225,11 @@ const Sidebar = () => {
                 {open && (
                   <ListItemText
                     primary={item.text}
-                    primaryTypographyProps={{
-                      fontSize: "0.95rem",
-                      fontWeight: 500,
+                    slotProps={{
+                      primary: {
+                        fontSize: "0.95rem",
+                        fontWeight: 500,
+                      },
                     }}
                   />
                 )}
@@ -272,15 +299,16 @@ const Sidebar = () => {
 
               {open && (
                 <>
+                  {/* Parent nav item: */}
                   <ListItemText
                     primary={item.text}
-                    primaryTypographyProps={{
-                      fontSize: "0.95rem",
-
-                      fontWeight: activeParent ? 600 : 500,
+                    slotProps={{
+                      primary: {
+                        fontSize: "0.95rem",
+                        fontWeight: activeParent ? 600 : 500,
+                      },
                     }}
                   />
-
                   {isExpanded ? (
                     <ExpandMoreIcon
                       sx={{
@@ -357,12 +385,14 @@ const Sidebar = () => {
                           <ChildIcon />
                         </ListItemIcon>
 
+                        {/* Child nav item: */}
                         <ListItemText
                           primary={child.text}
-                          primaryTypographyProps={{
-                            fontSize: "0.88rem",
-
-                            fontWeight: isActive(child.path) ? 600 : 400,
+                          slotProps={{
+                            primary: {
+                              fontSize: "0.88rem",
+                              fontWeight: isActive(child.path) ? 600 : 400,
+                            },
                           }}
                         />
                       </ListItemButton>

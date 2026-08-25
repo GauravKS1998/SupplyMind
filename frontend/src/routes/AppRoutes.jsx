@@ -5,11 +5,14 @@ import Layout from "../components/layout/Layout";
 import LoginPage from "../pages/auth/LoginPage";
 import SignupPage from "../pages/auth/SignupPage";
 import LandingPage from "../pages/landing/LandingPage";
+import UsersPage from "../pages/users/UsersPage";
+import ProfilePlaceholder from "../pages/profile/ProfilePlaceholder";
 
 import DashboardPage from "../pages/dashboard/DashboardPage";
 
 import ProtectedRoute from "./ProtectedRoute";
 import PublicRoute from "./PublicRoute";
+import RoleProtectedRoute from "./RoleProtectedRoute";
 
 const AppRoutes = () => {
   return (
@@ -38,6 +41,16 @@ const AppRoutes = () => {
 
             {/* Dashboard */}
             <Route path="dashboard" element={<DashboardPage />} />
+
+            <Route
+              element={
+                <RoleProtectedRoute allowedRoles={["SUPER_ADMIN", "ADMIN"]} />
+              }
+            >
+              <Route path="users" element={<UsersPage />} />
+            </Route>
+
+            <Route path="profile" element={<ProfilePlaceholder />} />
 
             {/* -------------------------------------------------------
                 Master Data

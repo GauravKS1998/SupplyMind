@@ -1,4 +1,5 @@
 import { Box } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { Outlet } from "react-router-dom";
 import { motion } from "framer-motion";
 
@@ -8,6 +9,8 @@ import Navbar from "./Navbar";
 const NAVBAR_HEIGHT = 64;
 
 const Layout = () => {
+  const theme = useTheme();
+
   return (
     <Box
       sx={{
@@ -32,20 +35,24 @@ const Layout = () => {
             overflowY: "auto",
             height: `calc(100vh - ${NAVBAR_HEIGHT}px)`,
             p: 3,
+
+            scrollbarWidth: "thin",
+            scrollbarColor: `${theme.palette.action.hover} transparent`,
+            "&::-webkit-scrollbar": { width: "6px" },
+            "&::-webkit-scrollbar-track": { background: "transparent" },
+            "&::-webkit-scrollbar-thumb": {
+              backgroundColor: theme.palette.action.hover,
+              borderRadius: "10px",
+            },
+            "&::-webkit-scrollbar-thumb:hover": {
+              backgroundColor: theme.palette.action.selected,
+            },
           }}
         >
           <motion.div
-            initial={{
-              opacity: 0,
-              y: 20,
-            }}
-            animate={{
-              opacity: 1,
-              y: 0,
-            }}
-            transition={{
-              duration: 0.4,
-            }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
           >
             <Outlet />
           </motion.div>

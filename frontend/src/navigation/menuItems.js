@@ -11,6 +11,9 @@ import BusinessIcon from "@mui/icons-material/Business";
 import PrecisionManufacturingIcon from "@mui/icons-material/PrecisionManufacturing";
 import StraightenIcon from "@mui/icons-material/Straighten";
 import StyleIcon from "@mui/icons-material/Style";
+import PeopleIcon from "@mui/icons-material/People";
+
+import {USER_MANAGEMENT_ROLES} from "../constants/userConstants";
 
 export const menuItems = [
   // -------------------------------------------------------------------
@@ -168,4 +171,23 @@ export const menuItems = [
       },
     ],
   },
+
+  // -------------------------------------------------------------------
+  // Administration
+  // -------------------------------------------------------------------
+
+  {
+  type: "section",
+  text: "Administration",
+  icon: PeopleIcon,
+  allowedRoles: USER_MANAGEMENT_ROLES,
+  children: [
+    {
+      text: "User Management",
+      icon: PeopleIcon,
+      path: "/app/users",
+      allowedRoles: USER_MANAGEMENT_ROLES,
+    },
+  ],
+},
 ];
