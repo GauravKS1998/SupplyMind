@@ -1,4 +1,4 @@
-import { Box, CircularProgress, Grid, Typography } from "@mui/material";
+import { Box, Grid, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useSnackbar } from "notistack";
@@ -9,16 +9,19 @@ import {
   changePassword,
 } from "../../api/services/userService";
 
-import { loginSuccess } from "../../store/slices/authSlice";
+import { updateUser } from "../../store/slices/authSlice";
 import { countryList, splitPhone } from "../../utils/countryCodes";
 
 import ProfileSummaryCard from "../../components/profile/ProfileSummaryCard";
 import PersonalInfoForm from "../../components/profile/PersonalInfoForm";
 import SecurityForm from "../../components/profile/SecurityForm";
+import { PageLoader } from "../../components/common/Loader";
+import { useAuthTokens } from "../../components/auth/authStyles";
 
 const ProfilePage = () => {
   const dispatch = useDispatch();
   const { enqueueSnackbar } = useSnackbar();
+  const brand = useAuthTokens();
   const currentUser = useSelector((state) => state.auth.user);
 
   const [profile, setProfile] = useState(null);
@@ -94,17 +97,10 @@ const ProfilePage = () => {
 
       if (currentUser) {
         dispatch(
-          loginSuccess({
-            token:
-              localStorage.getItem("accessToken") ||
-              sessionStorage.getItem("accessToken"),
-            user: {
-              ...currentUser,
-              full_name: updatedProfile.full_name,
-              email: updatedProfile.email,
-              role: updatedProfile.role,
-            },
-            rememberMe: !!localStorage.getItem("accessToken"),
+          updateUser({
+            full_name: updatedProfile.full_name,
+            email: updatedProfile.email,
+            role: updatedProfile.role,
           }),
         );
       }
@@ -180,7 +176,7 @@ const ProfilePage = () => {
   if (profileLoading) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-        <CircularProgress size={32} />
+        <PageLoader size={32} />
       </Box>
     );
   }
@@ -192,11 +188,15 @@ const ProfilePage = () => {
           variant="h4"
           sx={{
             fontWeight: 700,
+            fontFamily: brand.fontDisplay,
           }}
         >
           Profile
         </Typography>
-        <Typography color="text.secondary" sx={{ mt: 0.5 }}>
+        <Typography
+          color="text.secondary"
+          sx={{ mt: 0.5, fontFamily: brand.fontBody }}
+        >
           Manage your account information and security settings.
         </Typography>
       </Box>

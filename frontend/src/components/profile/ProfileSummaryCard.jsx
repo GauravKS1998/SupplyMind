@@ -10,8 +10,12 @@ import {
 } from "@mui/material";
 import { ROLE_LABELS } from "../../constants/userConstants";
 
+import { useAuthTokens } from "../../components/auth/authStyles";
+
 const ProfileSummaryCard = ({ profile, currentUser }) => {
   const user = profile || currentUser;
+
+  const brand = useAuthTokens();
 
   const getInitials = (name) => {
     if (!name) return "?";
@@ -29,7 +33,13 @@ const ProfileSummaryCard = ({ profile, currentUser }) => {
   return (
     <Card
       elevation={0}
-      sx={{ border: 1, borderColor: "divider", borderRadius: 2 }}
+      sx={{
+        border: 1,
+        borderColor: "divider",
+        borderRadius: 5,
+        backgroundColor: brand.pageBg,
+        transition: "background-color 0.2s ease, color 0.2s ease",
+      }}
     >
       <CardContent sx={{ p: 3 }}>
         <Stack
@@ -44,8 +54,9 @@ const ProfileSummaryCard = ({ profile, currentUser }) => {
               height: 88,
               fontSize: "2rem",
               fontWeight: 700,
-              bgcolor: "primary.main",
-              color: "primary.contrastText",
+              fontFamily: brand.fontDisplay,
+              bgcolor: brand.accent,
+              color: brand.ctaText,
             }}
           >
             {getInitials(user?.full_name)}
@@ -56,6 +67,7 @@ const ProfileSummaryCard = ({ profile, currentUser }) => {
             sx={{
               fontWeight: 700,
               textAlign: "center",
+              fontFamily: brand.fontDisplay,
             }}
           >
             {user?.full_name || "User"}
@@ -66,6 +78,7 @@ const ProfileSummaryCard = ({ profile, currentUser }) => {
             color="text.secondary"
             sx={{
               textAlign: "center",
+              fontFamily: brand.fontBody,
             }}
           >
             {user?.email || ""}
@@ -77,7 +90,15 @@ const ProfileSummaryCard = ({ profile, currentUser }) => {
             size="small"
             color="primary"
             variant="outlined"
-            sx={{ fontWeight: 600, fontSize: "0.75rem" }}
+            sx={{
+              mt: 1.5,
+              borderRadius: 1.5,
+              fontWeight: 600,
+              fontSize: "0.75rem",
+              fontFamily: brand.fontBody,
+              borderColor: brand.accent,
+              color: brand.accent,
+            }}
           />
         </Stack>
 
@@ -88,11 +109,14 @@ const ProfileSummaryCard = ({ profile, currentUser }) => {
             <Typography
               variant="caption"
               color="text.secondary"
-              sx={{ display: "block" }}
+              sx={{ display: "block", fontFamily: brand.fontBody }}
             >
               Account ID
             </Typography>
-            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+            <Typography
+              variant="body2"
+              sx={{ fontWeight: 500, fontFamily: brand.fontBody }}
+            >
               #{user?.id ?? "-"}
             </Typography>
           </Box>
@@ -102,12 +126,17 @@ const ProfileSummaryCard = ({ profile, currentUser }) => {
               variant="caption"
               color="text.secondary"
               display="block"
+              sx={{ fontFamily: brand.fontBody }}
             >
               Email
             </Typography>
             <Typography
               variant="body2"
-              sx={{ wordBreak: "break-all", fontWeight: 500 }}
+              sx={{
+                wordBreak: "break-all",
+                fontWeight: 500,
+                fontFamily: brand.fontBody,
+              }}
             >
               {user?.email || "-"}
             </Typography>
@@ -118,12 +147,13 @@ const ProfileSummaryCard = ({ profile, currentUser }) => {
               variant="caption"
               color="text.secondary"
               display="block"
+              sx={{ fontFamily: brand.fontBody }}
             >
               Account Status
             </Typography>
             <Typography
               variant="body2"
-              sx={{ fontWeight: 500 }}
+              sx={{ fontWeight: 500, fontFamily: brand.fontBody }}
               color={user?.is_active ? "success.main" : "error.main"}
             >
               {user?.is_active ? "Active" : "Inactive"}

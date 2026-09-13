@@ -18,6 +18,8 @@ import SecurityIcon from "@mui/icons-material/Security";
 import LockIcon from "@mui/icons-material/Lock";
 import KeyIcon from "@mui/icons-material/Key";
 
+import { useAuthTokens, authFieldSx } from "../../components/auth/authStyles";
+
 const SecurityForm = ({
   passwordForm,
   handlePasswordChange,
@@ -28,15 +30,31 @@ const SecurityForm = ({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  const brand = useAuthTokens();
+
   return (
     <Card
       elevation={0}
-      sx={{ border: 1, borderColor: "divider", borderRadius: 2 }}
+      sx={{
+        border: 1,
+        borderColor: "divider",
+        borderRadius: 5,
+        mb: 3,
+        backgroundColor: brand.pageBg,
+        transition: "background-color 0.2s ease, color 0.2s ease",
+      }}
     >
       <CardContent sx={{ p: 3 }}>
         <Stack direction="row" spacing={1} sx={{ mb: 3, alignItems: "center" }}>
-          <SecurityIcon color="primary" />
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>
+          <SecurityIcon
+            sx={{
+              color: brand.accent,
+            }}
+          />
+          <Typography
+            variant="h6"
+            sx={{ fontWeight: 700, fontFamily: brand.fontDisplay }}
+          >
             Security
           </Typography>
         </Stack>
@@ -45,13 +63,18 @@ const SecurityForm = ({
           <Stack spacing={2.5}>
             <TextField
               fullWidth
-              variant="standard"
+              variant="outlined"
+              size="small"
               type={showCurrentPassword ? "text" : "password"}
               label="Current Password"
               name="current_password"
               value={passwordForm.current_password}
               onChange={handlePasswordChange}
               disabled={saving}
+              sx={{
+                ...authFieldSx(brand),
+                mb: 1.75,
+              }}
               slotProps={{
                 input: {
                   startAdornment: (
@@ -67,8 +90,9 @@ const SecurityForm = ({
                           setShowCurrentPassword((previous) => !previous)
                         }
                         edge="end"
+                        disabled={saving}
                       >
-                        {showConfirmPassword ? (
+                        {showCurrentPassword ? (
                           <VisibilityOff
                             sx={{ color: "text.secondary", fontSize: 20 }}
                           />
@@ -86,7 +110,8 @@ const SecurityForm = ({
 
             <TextField
               fullWidth
-              variant="standard"
+              variant="outlined"
+              size="small"
               type={showPassword ? "text" : "password"}
               label="New Password"
               name="new_password"
@@ -94,6 +119,11 @@ const SecurityForm = ({
               onChange={handlePasswordChange}
               disabled={saving}
               helperText="Password must contain at least 8 characters."
+              sx={{
+                ...authFieldSx(brand),
+                mb: 1.75,
+                "& .MuiInput-input": { padding: "8px 4px" },
+              }}
               slotProps={{
                 input: {
                   startAdornment: (
@@ -123,20 +153,22 @@ const SecurityForm = ({
                   ),
                 },
               }}
-              sx={{
-                "& .MuiInput-input": { padding: "8px 4px" },
-              }}
             />
 
             <TextField
               fullWidth
-              variant="standard"
+              variant="outlined"
+              size="small"
               type={showConfirmPassword ? "text" : "password"}
               label="Confirm New Password"
               name="confirm_password"
               value={passwordForm.confirm_password}
               onChange={handlePasswordChange}
               disabled={saving}
+              sx={{
+                ...authFieldSx(brand),
+                mb: 1.75,
+              }}
               slotProps={{
                 input: {
                   startAdornment: (
@@ -152,6 +184,7 @@ const SecurityForm = ({
                           setShowConfirmPassword((previous) => !previous)
                         }
                         edge="end"
+                        disabled={saving}
                       >
                         {showConfirmPassword ? (
                           <VisibilityOff
@@ -169,7 +202,7 @@ const SecurityForm = ({
               }}
             />
 
-            <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+            <Box sx={{ display: "flex", justifyContent: "flex-end", pt: 1 }}>
               <Button
                 type="submit"
                 variant="contained"
@@ -177,10 +210,18 @@ const SecurityForm = ({
                 startIcon={<LockIcon />}
                 disabled={saving}
                 sx={{
-                  borderRadius: 2,
+                  borderRadius: "10px",
                   px: 3,
+                  py: 1,
                   fontWeight: 600,
                   textTransform: "none",
+                  fontSize: "0.9rem",
+                  color: brand.ctaText,
+                  backgroundColor: brand.ctaBg,
+                  border: brand.accent,
+                  "&:hover": {
+                    backgroundColor: brand.ctaBgHover,
+                  },
                 }}
               >
                 {saving ? "Changing..." : "Change Password"}

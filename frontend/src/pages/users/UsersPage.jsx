@@ -112,8 +112,6 @@ const UsersPage = () => {
   const brand = useAuthTokens();
   const currentUser = useSelector((state) => state.auth.user);
 
-  // Shared dropdown paper style (matches the country-code select
-  // used in PersonalInfoForm) — reused by every Select on this page.
   const selectMenuProps = {
     slotProps: {
       paper: {
@@ -127,12 +125,21 @@ const UsersPage = () => {
   };
 
   /* --------------------------------------------------
-     Users
+     Users & General Loading
   -------------------------------------------------- */
 
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  /* --------------------------------------------------
+     Action Loading States
+  -------------------------------------------------- */
+
+  const [actionLoading, setActionLoading] = useState(false);
+  const [rejectLoading, setRejectLoading] = useState(false);
+  const [roleLoading, setRoleLoading] = useState(false);
+  const [createLoading, setCreateLoading] = useState(false);
 
   /* --------------------------------------------------
      Pagination
@@ -154,29 +161,17 @@ const UsersPage = () => {
   const [sortDirection, setSortDirection] = useState("desc");
 
   /* --------------------------------------------------
-     Action Menu
+     Action Menu & Dialogs
   -------------------------------------------------- */
 
   const [actionAnchor, setActionAnchor] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
 
-  /* --------------------------------------------------
-     Reject Dialog
-  -------------------------------------------------- */
-
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
 
-  /* --------------------------------------------------
-     Role Dialog
-  -------------------------------------------------- */
-
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const [newRole, setNewRole] = useState("");
-
-  /* --------------------------------------------------
-     Create Employee Dialog
-  -------------------------------------------------- */
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [employeeForm, setEmployeeForm] = useState({
@@ -211,12 +206,8 @@ const UsersPage = () => {
       setTotalItems(response.pagination?.total_items || 0);
     } catch (err) {
       const message = err.response?.data?.detail || "Failed to load users.";
-
       setError(message);
-
-      enqueueSnackbar(message, {
-        variant: "error",
-      });
+      enqueueSnackbar(message, { variant: "error" });
     } finally {
       setLoading(false);
     }
@@ -238,7 +229,7 @@ const UsersPage = () => {
   }, [loadUsers]);
 
   /* ==================================================
-     Action Menu
+     Action Menu Handlers
   ================================================== */
 
   const handleActionMenuOpen = (event, user) => {
@@ -247,6 +238,7 @@ const UsersPage = () => {
   };
 
   const handleActionMenuClose = () => {
+    if (actionLoading) return;
     setActionAnchor(null);
   };
 
@@ -255,21 +247,19 @@ const UsersPage = () => {
   ================================================== */
 
   const handleApprove = async () => {
-    if (!selectedUser) {
-      return;
-    }
+    if (!selectedUser) return;
+    setActionLoading(true);
     try {
       await approveUser(selectedUser.id);
-      enqueueSnackbar("User approved successfully.", {
-        variant: "success",
-      });
+      enqueueSnackbar("User approved successfully.", { variant: "success" });
       handleActionMenuClose();
-
       await loadUsers();
     } catch (err) {
       enqueueSnackbar(err.response?.data?.detail || "Failed to approve user.", {
         variant: "error",
       });
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -284,83 +274,67 @@ const UsersPage = () => {
   };
 
   const handleReject = async () => {
-    if (!selectedUser) {
-      return;
-    }
+    if (!selectedUser) return;
     if (rejectReason.trim().length < 3) {
       enqueueSnackbar("Rejection reason must contain at least 3 characters.", {
         variant: "warning",
       });
       return;
     }
+    setRejectLoading(true);
     try {
-      await rejectUser(selectedUser.id, {
-        reason: rejectReason.trim(),
-      });
-      enqueueSnackbar("User rejected successfully.", {
-        variant: "success",
-      });
+      await rejectUser(selectedUser.id, { reason: rejectReason.trim() });
+      enqueueSnackbar("User rejected successfully.", { variant: "success" });
       setRejectDialogOpen(false);
       setRejectReason("");
       setSelectedUser(null);
-
       await loadUsers();
     } catch (err) {
       enqueueSnackbar(err.response?.data?.detail || "Failed to reject user.", {
         variant: "error",
       });
+    } finally {
+      setRejectLoading(false);
     }
   };
 
   /* ==================================================
-     Activate
+     Activate / Deactivate
   ================================================== */
 
   const handleActivate = async () => {
-    if (!selectedUser) {
-      return;
-    }
+    if (!selectedUser) return;
+    setActionLoading(true);
     try {
       await activateUser(selectedUser.id);
-      enqueueSnackbar("User activated successfully.", {
-        variant: "success",
-      });
+      enqueueSnackbar("User activated successfully.", { variant: "success" });
       handleActionMenuClose();
-
       await loadUsers();
     } catch (err) {
       enqueueSnackbar(
         err.response?.data?.detail || "Failed to activate user.",
-        {
-          variant: "error",
-        },
+        { variant: "error" },
       );
+    } finally {
+      setActionLoading(false);
     }
   };
 
-  /* ==================================================
-     Deactivate
-  ================================================== */
-
   const handleDeactivate = async () => {
-    if (!selectedUser) {
-      return;
-    }
+    if (!selectedUser) return;
+    setActionLoading(true);
     try {
       await deactivateUser(selectedUser.id);
-      enqueueSnackbar("User deactivated successfully.", {
-        variant: "success",
-      });
+      enqueueSnackbar("User deactivated successfully.", { variant: "success" });
       handleActionMenuClose();
-
       await loadUsers();
     } catch (err) {
       enqueueSnackbar(
         err.response?.data?.detail || "Failed to deactivate user.",
-        {
-          variant: "error",
-        },
+        { variant: "error" },
       );
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -369,43 +343,35 @@ const UsersPage = () => {
   ================================================== */
 
   const handleChangeRoleOpen = () => {
-    if (!selectedUser) {
-      return;
-    }
+    if (!selectedUser) return;
     setNewRole(selectedUser.role);
     handleActionMenuClose();
     setRoleDialogOpen(true);
   };
 
   const handleChangeRole = async () => {
-    if (!selectedUser || !newRole) {
-      return;
-    }
+    if (!selectedUser || !newRole) return;
     if (newRole === selectedUser.role) {
-      enqueueSnackbar("User already has this role.", {
-        variant: "info",
-      });
+      enqueueSnackbar("User already has this role.", { variant: "info" });
       return;
     }
+    setRoleLoading(true);
     try {
-      await changeUserRole(selectedUser.id, {
-        role: newRole,
-      });
+      await changeUserRole(selectedUser.id, { role: newRole });
       enqueueSnackbar("User role updated successfully.", {
         variant: "success",
       });
       setRoleDialogOpen(false);
       setNewRole("");
       setSelectedUser(null);
-
       await loadUsers();
     } catch (err) {
       enqueueSnackbar(
         err.response?.data?.detail || "Failed to change user role.",
-        {
-          variant: "error",
-        },
+        { variant: "error" },
       );
+    } finally {
+      setRoleLoading(false);
     }
   };
 
@@ -426,23 +392,17 @@ const UsersPage = () => {
 
   const handleCreateEmployee = async () => {
     if (!employeeForm.full_name.trim()) {
-      enqueueSnackbar("Full name is required.", {
-        variant: "warning",
-      });
+      enqueueSnackbar("Full name is required.", { variant: "warning" });
       return;
     }
 
     if (!employeeForm.email.trim()) {
-      enqueueSnackbar("Email is required.", {
-        variant: "warning",
-      });
+      enqueueSnackbar("Email is required.", { variant: "warning" });
       return;
     }
 
     if (!employeeForm.password) {
-      enqueueSnackbar("Password is required.", {
-        variant: "warning",
-      });
+      enqueueSnackbar("Password is required.", { variant: "warning" });
       return;
     }
 
@@ -453,6 +413,7 @@ const UsersPage = () => {
       return;
     }
 
+    setCreateLoading(true);
     try {
       await createInternalUser({
         full_name: employeeForm.full_name.trim(),
@@ -462,38 +423,28 @@ const UsersPage = () => {
         role: employeeForm.role,
       });
 
-      enqueueSnackbar("Employee created successfully.", {
-        variant: "success",
-      });
+      enqueueSnackbar("Employee created successfully.", { variant: "success" });
       setCreateDialogOpen(false);
-
       await loadUsers();
     } catch (err) {
       enqueueSnackbar(
         err.response?.data?.detail || "Failed to create employee.",
-        {
-          variant: "error",
-        },
+        { variant: "error" },
       );
+    } finally {
+      setCreateLoading(false);
     }
   };
 
   /* ==================================================
-     Pagination
+     Pagination & Search
   ================================================== */
 
-  const handlePageChange = (event, newPage) => {
-    setPage(newPage);
-  };
-
+  const handlePageChange = (event, newPage) => setPage(newPage);
   const handleRowsPerPageChange = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
-
-  /* ==================================================
-     Search
-  ================================================== */
 
   const handleSearchChange = (event) => {
     setSearch(event.target.value);
@@ -506,20 +457,9 @@ const UsersPage = () => {
 
   const roleOptions = CREATE_EMPLOYEE_ROLES;
 
-  /* ==================================================
-     Render
-  ================================================== */
-
   return (
-    <Box
-      sx={{
-        p: 3,
-      }}
-    >
-      {/* ==================================================
-          Header
-      ================================================== */}
-
+    <Box sx={{ p: 3 }}>
+      {/* Header */}
       <Box
         sx={{
           display: "flex",
@@ -531,10 +471,7 @@ const UsersPage = () => {
         <Box>
           <Typography
             variant="h4"
-            sx={{
-              fontWeight: 700,
-              fontFamily: brand.fontDisplay,
-            }}
+            sx={{ fontWeight: 700, fontFamily: brand.fontDisplay }}
           >
             User Management
           </Typography>
@@ -542,10 +479,7 @@ const UsersPage = () => {
           <Typography
             variant="body2"
             color="text.secondary"
-            sx={{
-              mt: 0.5,
-              fontFamily: brand.fontBody,
-            }}
+            sx={{ mt: 0.5, fontFamily: brand.fontBody }}
           >
             Manage employees, customers, suppliers, approvals and account
             access.
@@ -567,9 +501,7 @@ const UsersPage = () => {
               fontFamily: brand.fontBody,
               color: brand.ctaText,
               backgroundColor: brand.ctaBg,
-              "&:hover": {
-                backgroundColor: brand.ctaBgHover,
-              },
+              "&:hover": { backgroundColor: brand.ctaBgHover },
             }}
           >
             Add Employee
@@ -577,10 +509,7 @@ const UsersPage = () => {
         )}
       </Box>
 
-      {/* ==================================================
-          Filters & Controls Section
-      ================================================== */}
-
+      {/* Filters & Controls */}
       <Paper
         elevation={0}
         variant="outlined"
@@ -615,10 +544,7 @@ const UsersPage = () => {
                 startAdornment: (
                   <SearchIcon
                     fontSize="small"
-                    sx={{
-                      mr: 1,
-                      color: "text.secondary",
-                    }}
+                    sx={{ mr: 1, color: "text.secondary" }}
                   />
                 ),
               },
@@ -765,21 +691,12 @@ const UsersPage = () => {
       ================================================== */}
 
       {error && (
-        <Alert
-          severity="error"
-          sx={{
-            mb: 2,
-            borderRadius: 2,
-          }}
-        >
+        <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
           {error}
         </Alert>
       )}
 
-      {/* ==================================================
-          Table
-      ================================================== */}
-
+      {/* Main Table */}
       <Paper
         elevation={0}
         variant="outlined"
@@ -791,12 +708,7 @@ const UsersPage = () => {
           transition: "background-color 0.2s ease, color 0.2s ease",
         }}
       >
-        <TableContainer
-          sx={{
-            // scrolls horizontally on small screens
-            ...authScrollbarSx(brand),
-          }}
-        >
+        <TableContainer sx={{ ...authScrollbarSx(brand) }}>
           <Table>
             <TableHead>
               <TableRow>
@@ -827,13 +739,7 @@ const UsersPage = () => {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell
-                    colSpan={6}
-                    align="center"
-                    sx={{
-                      py: 6,
-                    }}
-                  >
+                  <TableCell colSpan={6} align="center" sx={{ py: 6 }}>
                     <Box sx={{ display: "flex", justifyContent: "center" }}>
                       <SupplyMindLoader size={30} color={brand.accent} />
                     </Box>
@@ -841,13 +747,7 @@ const UsersPage = () => {
                 </TableRow>
               ) : users.length === 0 ? (
                 <TableRow>
-                  <TableCell
-                    colSpan={6}
-                    align="center"
-                    sx={{
-                      py: 6,
-                    }}
-                  >
+                  <TableCell colSpan={6} align="center" sx={{ py: 6 }}>
                     <Typography
                       color="text.secondary"
                       sx={{ fontFamily: brand.fontBody }}
@@ -863,11 +763,7 @@ const UsersPage = () => {
 
                     <TableCell>
                       <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1.5,
-                        }}
+                        sx={{ display: "flex", alignItems: "center", gap: 1.5 }}
                       >
                         <Avatar
                           sx={{
@@ -967,7 +863,7 @@ const UsersPage = () => {
                           variant="body2"
                           color="text.disabled"
                           sx={{ px: 1 }}
-                        ></Typography>
+                        />
                       )}
                     </TableCell>
                   </TableRow>
@@ -988,22 +884,13 @@ const UsersPage = () => {
         />
       </Paper>
 
-      {/* ==================================================
-          User Action Menu
-      ================================================== */}
-
+      {/* Action Menu */}
       <Menu
         anchorEl={actionAnchor}
         open={Boolean(actionAnchor)}
         onClose={handleActionMenuClose}
-        anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "right",
-        }}
-        transformOrigin={{
-          vertical: "top",
-          horizontal: "right",
-        }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
         slotProps={{
           paper: {
             sx: {
@@ -1017,37 +904,56 @@ const UsersPage = () => {
           },
         }}
       >
-        {selectedUser?.approval_status === APPROVAL_STATUS.PENDING && [
-          <MenuItem key="approve" onClick={handleApprove}>
-            Approve
-          </MenuItem>,
-          <MenuItem key="reject" onClick={handleRejectOpen}>
-            Reject
-          </MenuItem>,
-        ]}
+        {actionLoading ? (
+          <Box
+            sx={{
+              py: 1.5,
+              px: 2,
+              display: "flex",
+              justify: "center",
+              alignItems: "center",
+            }}
+          >
+            <SupplyMindLoader size={20} color={brand.accent} />
+          </Box>
+        ) : (
+          [
+            selectedUser?.approval_status === APPROVAL_STATUS.PENDING && [
+              <MenuItem key="approve" onClick={handleApprove}>
+                Approve
+              </MenuItem>,
+              <MenuItem key="reject" onClick={handleRejectOpen}>
+                Reject
+              </MenuItem>,
+            ],
 
-        {selectedUser?.approval_status === APPROVAL_STATUS.APPROVED &&
-          !selectedUser?.is_active && (
-            <MenuItem onClick={handleActivate}>Activate</MenuItem>
-          )}
+            selectedUser?.approval_status === APPROVAL_STATUS.APPROVED &&
+              !selectedUser?.is_active && (
+                <MenuItem key="activate" onClick={handleActivate}>
+                  Activate
+                </MenuItem>
+              ),
 
-        {selectedUser?.approval_status === APPROVAL_STATUS.APPROVED &&
-          selectedUser?.is_active && (
-            <MenuItem onClick={handleDeactivate}>Deactivate</MenuItem>
-          )}
+            selectedUser?.approval_status === APPROVAL_STATUS.APPROVED &&
+              selectedUser?.is_active && (
+                <MenuItem key="deactivate" onClick={handleDeactivate}>
+                  Deactivate
+                </MenuItem>
+              ),
 
-        {canChangeRole(selectedUser) && (
-          <MenuItem onClick={handleChangeRoleOpen}>Change Role</MenuItem>
+            canChangeRole(selectedUser) && (
+              <MenuItem key="change-role" onClick={handleChangeRoleOpen}>
+                Change Role
+              </MenuItem>
+            ),
+          ]
         )}
       </Menu>
 
-      {/* ==================================================
-          Reject Dialog
-      ================================================== */}
-
+      {/* Reject Dialog */}
       <Dialog
         open={rejectDialogOpen}
-        onClose={() => setRejectDialogOpen(false)}
+        onClose={() => !rejectLoading && setRejectDialogOpen(false)}
         fullWidth
         maxWidth="sm"
         slotProps={{
@@ -1078,10 +984,7 @@ const UsersPage = () => {
           <Typography
             variant="body2"
             color="text.secondary"
-            sx={{
-              mb: 2,
-              fontFamily: brand.fontBody,
-            }}
+            sx={{ mb: 2, fontFamily: brand.fontBody }}
           >
             You are rejecting <strong>{selectedUser?.full_name}</strong>.
           </Typography>
@@ -1093,10 +996,9 @@ const UsersPage = () => {
             minRows={4}
             label="Rejection Reason"
             value={rejectReason}
+            disabled={rejectLoading}
             onChange={(event) => setRejectReason(event.target.value)}
-            inputProps={{
-              maxLength: 500,
-            }}
+            inputProps={{ maxLength: 500 }}
             helperText={`${rejectReason.length}/500`}
             sx={authFieldSx(brand)}
           />
@@ -1104,6 +1006,7 @@ const UsersPage = () => {
 
         <DialogActions sx={{ px: 3, pb: 2.5, pt: 1.5 }}>
           <Button
+            disabled={rejectLoading}
             onClick={() => setRejectDialogOpen(false)}
             sx={{ textTransform: "none", color: "text.secondary" }}
           >
@@ -1114,26 +1017,30 @@ const UsersPage = () => {
             color="error"
             variant="contained"
             disableElevation
+            disabled={rejectLoading}
             onClick={handleReject}
             sx={{
               borderRadius: "10px",
               px: 3,
+              minWidth: 120,
+              minHeight: 36.5,
               fontWeight: 600,
               textTransform: "none",
             }}
           >
-            Reject User
+            {rejectLoading ? (
+              <SupplyMindLoader size={20} color="#FFFFFF" />
+            ) : (
+              "Reject User"
+            )}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* ==================================================
-          Change Role Dialog
-      ================================================== */}
-
+      {/* Change Role Dialog */}
       <Dialog
         open={roleDialogOpen}
-        onClose={() => setRoleDialogOpen(false)}
+        onClose={() => !roleLoading && setRoleDialogOpen(false)}
         fullWidth
         maxWidth="xs"
         slotProps={{
@@ -1164,10 +1071,7 @@ const UsersPage = () => {
           <Typography
             variant="body2"
             color="text.secondary"
-            sx={{
-              mb: 2,
-              fontFamily: brand.fontBody,
-            }}
+            sx={{ mb: 2, fontFamily: brand.fontBody }}
           >
             Change the role for <strong>{selectedUser?.full_name}</strong>.
           </Typography>
@@ -1178,6 +1082,7 @@ const UsersPage = () => {
               labelId="change-role-label"
               label="Role *"
               value={newRole}
+              disabled={roleLoading}
               onChange={(event) => setNewRole(event.target.value)}
               sx={authSelectSx(brand)}
               MenuProps={selectMenuProps}
@@ -1193,6 +1098,7 @@ const UsersPage = () => {
 
         <DialogActions sx={{ px: 3, pb: 2.5, pt: 1.5 }}>
           <Button
+            disabled={roleLoading}
             onClick={() => setRoleDialogOpen(false)}
             sx={{ textTransform: "none", color: "text.secondary" }}
           >
@@ -1202,31 +1108,33 @@ const UsersPage = () => {
           <Button
             variant="contained"
             disableElevation
+            disabled={roleLoading}
             onClick={handleChangeRole}
             sx={{
               borderRadius: "10px",
               px: 3,
+              minWidth: 130,
+              minHeight: 36.5,
               fontWeight: 600,
               textTransform: "none",
               color: brand.ctaText,
               backgroundColor: brand.ctaBg,
-              "&:hover": {
-                backgroundColor: brand.ctaBgHover,
-              },
+              "&:hover": { backgroundColor: brand.ctaBgHover },
             }}
           >
-            Change Role
+            {roleLoading ? (
+              <SupplyMindLoader size={20} color={brand.ctaText} />
+            ) : (
+              "Change Role"
+            )}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* ==================================================
-          Create Employee Dialog
-      ================================================== */}
-
+      {/* Create Employee Dialog */}
       <Dialog
         open={createDialogOpen}
-        onClose={() => setCreateDialogOpen(false)}
+        onClose={() => !createLoading && setCreateDialogOpen(false)}
         fullWidth
         maxWidth="sm"
         slotProps={{
@@ -1261,25 +1169,19 @@ const UsersPage = () => {
         </DialogTitle>
 
         <DialogContent sx={{ px: 3, py: 2 }}>
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 2,
-              mt: 1,
-            }}
-          >
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
             <TextField
               variant="outlined"
               label="Full Name"
               required
               fullWidth
+              disabled={createLoading}
               name="full_name"
               autoComplete="off"
               value={employeeForm.full_name}
               onChange={(event) =>
-                setEmployeeForm((previous) => ({
-                  ...previous,
+                setEmployeeForm((prev) => ({
+                  ...prev,
                   full_name: event.target.value,
                 }))
               }
@@ -1292,12 +1194,13 @@ const UsersPage = () => {
               type="email"
               required
               fullWidth
+              disabled={createLoading}
               name="email"
               autoComplete="off"
               value={employeeForm.email}
               onChange={(event) =>
-                setEmployeeForm((previous) => ({
-                  ...previous,
+                setEmployeeForm((prev) => ({
+                  ...prev,
                   email: event.target.value,
                 }))
               }
@@ -1308,12 +1211,13 @@ const UsersPage = () => {
               variant="outlined"
               label="Phone"
               fullWidth
+              disabled={createLoading}
               name="phone"
               autoComplete="off"
               value={employeeForm.phone}
               onChange={(event) =>
-                setEmployeeForm((previous) => ({
-                  ...previous,
+                setEmployeeForm((prev) => ({
+                  ...prev,
                   phone: event.target.value,
                 }))
               }
@@ -1326,12 +1230,13 @@ const UsersPage = () => {
               type="password"
               required
               fullWidth
+              disabled={createLoading}
               name="password"
               autoComplete="new-password"
               value={employeeForm.password}
               onChange={(event) =>
-                setEmployeeForm((previous) => ({
-                  ...previous,
+                setEmployeeForm((prev) => ({
+                  ...prev,
                   password: event.target.value,
                 }))
               }
@@ -1345,6 +1250,7 @@ const UsersPage = () => {
                 labelId="employee-role-label"
                 label="Role *"
                 value={employeeForm.role}
+                disabled={createLoading}
                 onChange={(e) =>
                   setEmployeeForm((prev) => ({ ...prev, role: e.target.value }))
                 }
@@ -1363,6 +1269,7 @@ const UsersPage = () => {
 
         <DialogActions sx={{ px: 3, pb: 2.5, pt: 1.5 }}>
           <Button
+            disabled={createLoading}
             onClick={() => setCreateDialogOpen(false)}
             sx={{ textTransform: "none", color: "text.secondary" }}
           >
@@ -1372,20 +1279,25 @@ const UsersPage = () => {
           <Button
             variant="contained"
             disableElevation
+            disabled={createLoading}
             onClick={handleCreateEmployee}
             sx={{
               borderRadius: "10px",
               px: 3,
+              minWidth: 150,
+              minHeight: 36.5,
               fontWeight: 600,
               textTransform: "none",
               color: brand.ctaText,
               backgroundColor: brand.ctaBg,
-              "&:hover": {
-                backgroundColor: brand.ctaBgHover,
-              },
+              "&:hover": { backgroundColor: brand.ctaBgHover },
             }}
           >
-            Create Employee
+            {createLoading ? (
+              <SupplyMindLoader size={20} color={brand.ctaText} />
+            ) : (
+              "Create Employee"
+            )}
           </Button>
         </DialogActions>
       </Dialog>

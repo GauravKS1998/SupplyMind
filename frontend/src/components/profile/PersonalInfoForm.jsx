@@ -9,11 +9,18 @@ import {
   Stack,
   TextField,
   Typography,
-  useTheme,
 } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
 import SaveIcon from "@mui/icons-material/Save";
 import SmartphoneIcon from "@mui/icons-material/Smartphone";
+
+import {
+  useAuthTokens,
+  authScrollbarSx,
+  authSelectSx,
+  authFieldSx,
+  authMenuPaperSx,
+} from "../../components/auth/authStyles";
 
 const PersonalInfoForm = ({
   profileForm,
@@ -23,7 +30,7 @@ const PersonalInfoForm = ({
   saving,
   onSubmit,
 }) => {
-  const theme = useTheme();
+  const brand = useAuthTokens();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -33,12 +40,26 @@ const PersonalInfoForm = ({
   return (
     <Card
       elevation={0}
-      sx={{ border: 1, borderColor: "divider", borderRadius: 2, mb: 3 }}
+      sx={{
+        border: 1,
+        borderColor: "divider",
+        borderRadius: 5,
+        mb: 3,
+        backgroundColor: brand.pageBg,
+        transition: "background-color 0.2s ease, color 0.2s ease",
+      }}
     >
       <CardContent sx={{ p: 3 }}>
         <Stack direction="row" spacing={1} sx={{ mb: 3, alignItems: "center" }}>
-          <PersonIcon color="primary" />
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>
+          <PersonIcon
+            sx={{
+              color: brand.accent,
+            }}
+          />
+          <Typography
+            variant="h6"
+            sx={{ fontWeight: 700, fontFamily: brand.fontDisplay }}
+          >
             Personal Information
           </Typography>
         </Stack>
@@ -47,22 +68,32 @@ const PersonalInfoForm = ({
           <Stack spacing={2.5}>
             <TextField
               fullWidth
-              variant="standard"
+              variant="outlined"
+              size="small"
               label="Full Name"
               name="full_name"
               value={profileForm.full_name}
               onChange={handleChange}
               disabled={saving}
               slotProps={{ input: { maxLength: 150 } }}
+              sx={{
+                ...authFieldSx(brand),
+                mb: 1.75,
+              }}
             />
 
             <TextField
               fullWidth
-              variant="standard"
+              variant="outlined"
+              size="small"
               label="Email"
               value={profileEmail || ""}
               disabled
               helperText="Email cannot be changed from your profile."
+              sx={{
+                ...authFieldSx(brand),
+                mb: 1.75,
+              }}
             />
 
             <Box>
@@ -76,30 +107,19 @@ const PersonalInfoForm = ({
 
               <Box sx={{ display: "flex", gap: 1.5 }}>
                 <Select
-                  variant="standard"
+                  variant="outlined"
                   name="countryCode"
                   value={profileForm.countryCode}
                   onChange={handleChange}
                   disabled={saving}
-                  sx={{ width: 100 }}
+                  sx={{ ...authSelectSx(brand), width: 100 }}
                   MenuProps={{
                     slotProps: {
                       paper: {
                         sx: {
                           maxHeight: 5 * 44,
-                          scrollbarWidth: "thin",
-                          scrollbarColor: `${theme.palette.action.hover} transparent`,
-                          "&::-webkit-scrollbar": { width: "6px" },
-                          "&::-webkit-scrollbar-track": {
-                            background: "transparent",
-                          },
-                          "&::-webkit-scrollbar-thumb": {
-                            backgroundColor: theme.palette.action.hover,
-                            borderRadius: "10px",
-                          },
-                          "&::-webkit-scrollbar-thumb:hover": {
-                            backgroundColor: theme.palette.action.selected,
-                          },
+                          ...authMenuPaperSx(brand),
+                          ...authScrollbarSx(brand),
                         },
                       },
                     },
@@ -114,7 +134,8 @@ const PersonalInfoForm = ({
 
                 <TextField
                   fullWidth
-                  variant="standard"
+                  variant="outlined"
+                  size="small"
                   name="phone"
                   type="tel"
                   placeholder="Phone number"
@@ -122,6 +143,7 @@ const PersonalInfoForm = ({
                   onChange={handleChange}
                   autoComplete="tel-national"
                   disabled={saving}
+                  sx={authFieldSx(brand)}
                   slotProps={{
                     input: {
                       startAdornment: (
@@ -145,10 +167,18 @@ const PersonalInfoForm = ({
                 startIcon={<SaveIcon />}
                 disabled={saving}
                 sx={{
-                  borderRadius: 2,
+                  borderRadius: "10px",
                   px: 3,
+                  py: 1,
                   fontWeight: 600,
                   textTransform: "none",
+                  fontSize: "0.9rem",
+                  color: brand.ctaText,
+                  backgroundColor: brand.ctaBg,
+                  border: brand.accent,
+                  "&:hover": {
+                    backgroundColor: brand.ctaBgHover,
+                  },
                 }}
               >
                 {saving ? "Saving..." : "Save Changes"}
