@@ -1,14 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { useTheme } from "@mui/material/styles";
-
 import {
   Alert,
   Avatar,
   Box,
   Button,
   Chip,
-  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -59,6 +56,15 @@ import {
   ROLE_LABELS,
 } from "../../constants/userConstants";
 
+import SupplyMindLoader from "../../components/common/Loader";
+import {
+  useAuthTokens,
+  authScrollbarSx,
+  authFieldSx,
+  authSelectSx,
+  authMenuPaperSx,
+} from "../../components/auth/authStyles";
+
 /* ==================================================
    Helpers
 ================================================== */
@@ -103,8 +109,22 @@ const canChangeRole = (user) => {
 
 const UsersPage = () => {
   const { enqueueSnackbar } = useSnackbar();
-  const theme = useTheme();
+  const brand = useAuthTokens();
   const currentUser = useSelector((state) => state.auth.user);
+
+  // Shared dropdown paper style (matches the country-code select
+  // used in PersonalInfoForm) — reused by every Select on this page.
+  const selectMenuProps = {
+    slotProps: {
+      paper: {
+        sx: {
+          maxHeight: 5 * 44,
+          ...authMenuPaperSx(brand),
+          ...authScrollbarSx(brand),
+        },
+      },
+    },
+  };
 
   /* --------------------------------------------------
      Users
@@ -513,6 +533,7 @@ const UsersPage = () => {
             variant="h4"
             sx={{
               fontWeight: 700,
+              fontFamily: brand.fontDisplay,
             }}
           >
             User Management
@@ -523,6 +544,7 @@ const UsersPage = () => {
             color="text.secondary"
             sx={{
               mt: 0.5,
+              fontFamily: brand.fontBody,
             }}
           >
             Manage employees, customers, suppliers, approvals and account
@@ -537,11 +559,17 @@ const UsersPage = () => {
             startIcon={<AddIcon />}
             onClick={handleCreateEmployeeOpen}
             sx={{
-              borderRadius: 2,
+              borderRadius: "10px",
               px: 2.5,
               py: 1,
               fontWeight: 600,
               textTransform: "none",
+              fontFamily: brand.fontBody,
+              color: brand.ctaText,
+              backgroundColor: brand.ctaBg,
+              "&:hover": {
+                backgroundColor: brand.ctaBgHover,
+              },
             }}
           >
             Add Employee
@@ -559,8 +587,10 @@ const UsersPage = () => {
         sx={{
           p: 2,
           mb: 3,
-          borderRadius: 2,
+          borderRadius: 5,
           borderColor: "divider",
+          backgroundColor: brand.pageBg,
+          transition: "background-color 0.2s ease, color 0.2s ease",
         }}
       >
         <Box
@@ -579,7 +609,7 @@ const UsersPage = () => {
             autoComplete="off"
             value={search}
             onChange={handleSearchChange}
-            sx={{ minWidth: 240, flexGrow: 1 }}
+            sx={{ ...authFieldSx(brand), minWidth: 240, flexGrow: 1 }}
             slotProps={{
               input: {
                 startAdornment: (
@@ -596,7 +626,10 @@ const UsersPage = () => {
           />
 
           {/* Role Filter */}
-          <FormControl size="small" sx={{ minWidth: 160 }}>
+          <FormControl
+            size="small"
+            sx={{ ...authSelectSx(brand), minWidth: 160 }}
+          >
             <InputLabel id="role-filter-label">Role</InputLabel>
             <Select
               labelId="role-filter-label"
@@ -606,6 +639,8 @@ const UsersPage = () => {
                 setRoleFilter(e.target.value);
                 setPage(0);
               }}
+              sx={authSelectSx(brand)}
+              MenuProps={selectMenuProps}
             >
               <MenuItem value="">All Roles</MenuItem>
               {Object.values(ROLES).map((roleKey) => (
@@ -617,7 +652,10 @@ const UsersPage = () => {
           </FormControl>
 
           {/* Approval Filter */}
-          <FormControl size="small" sx={{ minWidth: 160 }}>
+          <FormControl
+            size="small"
+            sx={{ ...authSelectSx(brand), minWidth: 160 }}
+          >
             <InputLabel id="approval-filter-label">Approval Status</InputLabel>
             <Select
               labelId="approval-filter-label"
@@ -627,6 +665,8 @@ const UsersPage = () => {
                 setApprovalFilter(e.target.value);
                 setPage(0);
               }}
+              sx={authSelectSx(brand)}
+              MenuProps={selectMenuProps}
             >
               <MenuItem value="">All Statuses</MenuItem>
               {Object.values(APPROVAL_STATUS).map((status) => (
@@ -638,7 +678,10 @@ const UsersPage = () => {
           </FormControl>
 
           {/* Account Filter */}
-          <FormControl size="small" sx={{ minWidth: 140 }}>
+          <FormControl
+            size="small"
+            sx={{ ...authSelectSx(brand), minWidth: 140 }}
+          >
             <InputLabel id="account-filter-label">Account</InputLabel>
             <Select
               labelId="account-filter-label"
@@ -648,6 +691,8 @@ const UsersPage = () => {
                 setActiveFilter(e.target.value);
                 setPage(0);
               }}
+              sx={authSelectSx(brand)}
+              MenuProps={selectMenuProps}
             >
               <MenuItem value="">All Accounts</MenuItem>
               <MenuItem value="true">Active</MenuItem>
@@ -656,7 +701,10 @@ const UsersPage = () => {
           </FormControl>
 
           {/* Sort Field */}
-          <FormControl size="small" sx={{ minWidth: 140 }}>
+          <FormControl
+            size="small"
+            sx={{ ...authSelectSx(brand), minWidth: 140 }}
+          >
             <InputLabel id="sort-by-label">Sort By</InputLabel>
             <Select
               labelId="sort-by-label"
@@ -666,6 +714,8 @@ const UsersPage = () => {
                 setSortBy(e.target.value);
                 setPage(0);
               }}
+              sx={authSelectSx(brand)}
+              MenuProps={selectMenuProps}
             >
               <MenuItem value="created_at">Date Created</MenuItem>
               <MenuItem value="full_name">Name</MenuItem>
@@ -674,7 +724,10 @@ const UsersPage = () => {
           </FormControl>
 
           {/* Sort Direction */}
-          <FormControl size="small" sx={{ minWidth: 110 }}>
+          <FormControl
+            size="small"
+            sx={{ ...authSelectSx(brand), minWidth: 110 }}
+          >
             <InputLabel id="sort-order-label">Order</InputLabel>
             <Select
               labelId="sort-order-label"
@@ -684,6 +737,8 @@ const UsersPage = () => {
                 setSortDirection(e.target.value);
                 setPage(0);
               }}
+              sx={authSelectSx(brand)}
+              MenuProps={selectMenuProps}
             >
               <MenuItem value="desc">Newest</MenuItem>
               <MenuItem value="asc">Oldest</MenuItem>
@@ -728,32 +783,42 @@ const UsersPage = () => {
       <Paper
         elevation={0}
         variant="outlined"
-        sx={{ borderRadius: 2, overflow: "hidden", borderColor: "divider" }}
+        sx={{
+          borderRadius: 5,
+          overflow: "hidden",
+          borderColor: "divider",
+          backgroundColor: brand.pageBg,
+          transition: "background-color 0.2s ease, color 0.2s ease",
+        }}
       >
         <TableContainer
           sx={{
-            scrollbarWidth: "thin",
-            scrollbarColor: `${theme.palette.action.hover} transparent`,
-            "&::-webkit-scrollbar": { height: "6px" }, // height, not width — this scrolls horizontally
-            "&::-webkit-scrollbar-track": { background: "transparent" },
-            "&::-webkit-scrollbar-thumb": {
-              backgroundColor: theme.palette.action.hover,
-              borderRadius: "10px",
-            },
-            "&::-webkit-scrollbar-thumb:hover": {
-              backgroundColor: theme.palette.action.selected,
-            },
+            // scrolls horizontally on small screens
+            ...authScrollbarSx(brand),
           }}
         >
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ fontWeight: 600 }}>User</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Role</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Approval</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Account</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Created</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 600 }}>
+                <TableCell sx={{ fontWeight: 600, fontFamily: brand.fontBody }}>
+                  User
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, fontFamily: brand.fontBody }}>
+                  Role
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, fontFamily: brand.fontBody }}>
+                  Approval
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, fontFamily: brand.fontBody }}>
+                  Account
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, fontFamily: brand.fontBody }}>
+                  Created
+                </TableCell>
+                <TableCell
+                  align="right"
+                  sx={{ fontWeight: 600, fontFamily: brand.fontBody }}
+                >
                   Actions
                 </TableCell>
               </TableRow>
@@ -769,7 +834,9 @@ const UsersPage = () => {
                       py: 6,
                     }}
                   >
-                    <CircularProgress size={30} />
+                    <Box sx={{ display: "flex", justifyContent: "center" }}>
+                      <SupplyMindLoader size={30} color={brand.accent} />
+                    </Box>
                   </TableCell>
                 </TableRow>
               ) : users.length === 0 ? (
@@ -781,7 +848,10 @@ const UsersPage = () => {
                       py: 6,
                     }}
                   >
-                    <Typography color="text.secondary">
+                    <Typography
+                      color="text.secondary"
+                      sx={{ fontFamily: brand.fontBody }}
+                    >
                       No users found.
                     </Typography>
                   </TableCell>
@@ -805,6 +875,9 @@ const UsersPage = () => {
                             height: 36,
                             fontSize: 14,
                             fontWeight: 600,
+                            fontFamily: brand.fontDisplay,
+                            bgcolor: brand.accent,
+                            color: brand.ctaText,
                           }}
                         >
                           {getInitials(user.full_name)}
@@ -812,7 +885,11 @@ const UsersPage = () => {
 
                         <Box>
                           <Typography
-                            sx={{ fontWeight: 600, fontSize: "0.875rem" }}
+                            sx={{
+                              fontWeight: 600,
+                              fontSize: "0.875rem",
+                              fontFamily: brand.fontBody,
+                            }}
                           >
                             {user.full_name}
                           </Typography>
@@ -820,7 +897,10 @@ const UsersPage = () => {
                           <Typography
                             variant="body2"
                             color="text.secondary"
-                            sx={{ fontSize: "0.775rem" }}
+                            sx={{
+                              fontSize: "0.775rem",
+                              fontFamily: brand.fontBody,
+                            }}
                           >
                             {user.email}
                           </Typography>
@@ -835,7 +915,12 @@ const UsersPage = () => {
                         size="small"
                         label={getRoleLabel(user.role)}
                         variant="outlined"
-                        sx={{ borderRadius: 1.5 }}
+                        sx={{
+                          borderRadius: 1.5,
+                          borderColor: brand.accent,
+                          color: brand.accent,
+                          fontFamily: brand.fontBody,
+                        }}
                       />
                     </TableCell>
 
@@ -882,9 +967,7 @@ const UsersPage = () => {
                           variant="body2"
                           color="text.disabled"
                           sx={{ px: 1 }}
-                        >
-                          —
-                        </Typography>
+                        ></Typography>
                       )}
                     </TableCell>
                   </TableRow>
@@ -926,6 +1009,10 @@ const UsersPage = () => {
             sx: {
               minWidth: 140,
               borderRadius: 2,
+              border: 1,
+              borderColor: "divider",
+              backgroundColor: brand.pageBg,
+              backgroundImage: "none",
             },
           },
         }}
@@ -965,14 +1052,23 @@ const UsersPage = () => {
         maxWidth="sm"
         slotProps={{
           paper: {
-            sx: { borderRadius: 3, p: 1 },
+            sx: {
+              borderRadius: 3,
+              p: 1,
+              backgroundColor: brand.pageBg,
+              backgroundImage: "none",
+            },
           },
         }}
       >
         <DialogTitle sx={{ pb: 1, pt: 2.5, px: 3 }}>
           <Typography
             variant="h5"
-            sx={{ fontWeight: 700, letterSpacing: "-0.5px" }}
+            sx={{
+              fontWeight: 700,
+              letterSpacing: "-0.5px",
+              fontFamily: brand.fontDisplay,
+            }}
           >
             Reject User
           </Typography>
@@ -984,6 +1080,7 @@ const UsersPage = () => {
             color="text.secondary"
             sx={{
               mb: 2,
+              fontFamily: brand.fontBody,
             }}
           >
             You are rejecting <strong>{selectedUser?.full_name}</strong>.
@@ -991,7 +1088,7 @@ const UsersPage = () => {
 
           <TextField
             fullWidth
-            variant="standard"
+            variant="outlined"
             multiline
             minRows={4}
             label="Rejection Reason"
@@ -1001,6 +1098,7 @@ const UsersPage = () => {
               maxLength: 500,
             }}
             helperText={`${rejectReason.length}/500`}
+            sx={authFieldSx(brand)}
           />
         </DialogContent>
 
@@ -1018,7 +1116,7 @@ const UsersPage = () => {
             disableElevation
             onClick={handleReject}
             sx={{
-              borderRadius: 2,
+              borderRadius: "10px",
               px: 3,
               fontWeight: 600,
               textTransform: "none",
@@ -1040,14 +1138,23 @@ const UsersPage = () => {
         maxWidth="xs"
         slotProps={{
           paper: {
-            sx: { borderRadius: 3, p: 1 },
+            sx: {
+              borderRadius: 3,
+              p: 1,
+              backgroundColor: brand.pageBg,
+              backgroundImage: "none",
+            },
           },
         }}
       >
         <DialogTitle sx={{ pb: 1, pt: 2.5, px: 3 }}>
           <Typography
             variant="h5"
-            sx={{ fontWeight: 700, letterSpacing: "-0.5px" }}
+            sx={{
+              fontWeight: 700,
+              letterSpacing: "-0.5px",
+              fontFamily: brand.fontDisplay,
+            }}
           >
             Change User Role
           </Typography>
@@ -1059,18 +1166,21 @@ const UsersPage = () => {
             color="text.secondary"
             sx={{
               mb: 2,
+              fontFamily: brand.fontBody,
             }}
           >
             Change the role for <strong>{selectedUser?.full_name}</strong>.
           </Typography>
 
-          <FormControl fullWidth variant="standard">
+          <FormControl fullWidth variant="outlined" sx={authSelectSx(brand)}>
             <InputLabel id="change-role-label">Role *</InputLabel>
             <Select
               labelId="change-role-label"
               label="Role *"
               value={newRole}
               onChange={(event) => setNewRole(event.target.value)}
+              sx={authSelectSx(brand)}
+              MenuProps={selectMenuProps}
             >
               {roleOptions.map((role) => (
                 <MenuItem key={role} value={role}>
@@ -1094,10 +1204,15 @@ const UsersPage = () => {
             disableElevation
             onClick={handleChangeRole}
             sx={{
-              borderRadius: 2,
+              borderRadius: "10px",
               px: 3,
               fontWeight: 600,
               textTransform: "none",
+              color: brand.ctaText,
+              backgroundColor: brand.ctaBg,
+              "&:hover": {
+                backgroundColor: brand.ctaBgHover,
+              },
             }}
           >
             Change Role
@@ -1116,18 +1231,31 @@ const UsersPage = () => {
         maxWidth="sm"
         slotProps={{
           paper: {
-            sx: { borderRadius: 3, p: 1 },
+            sx: {
+              borderRadius: 3,
+              p: 1,
+              backgroundColor: brand.pageBg,
+              backgroundImage: "none",
+            },
           },
         }}
       >
         <DialogTitle sx={{ pb: 1, pt: 2.5, px: 3 }}>
           <Typography
             variant="h5"
-            sx={{ fontWeight: 700, letterSpacing: "-0.5px" }}
+            sx={{
+              fontWeight: 700,
+              letterSpacing: "-0.5px",
+              fontFamily: brand.fontDisplay,
+            }}
           >
             Create Employee
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ mt: 0.5, fontFamily: brand.fontBody }}
+          >
             Internal employees are created as approved and active accounts.
           </Typography>
         </DialogTitle>
@@ -1142,7 +1270,7 @@ const UsersPage = () => {
             }}
           >
             <TextField
-              variant="standard"
+              variant="outlined"
               label="Full Name"
               required
               fullWidth
@@ -1155,10 +1283,11 @@ const UsersPage = () => {
                   full_name: event.target.value,
                 }))
               }
+              sx={authFieldSx(brand)}
             />
 
             <TextField
-              variant="standard"
+              variant="outlined"
               label="Email"
               type="email"
               required
@@ -1172,10 +1301,11 @@ const UsersPage = () => {
                   email: event.target.value,
                 }))
               }
+              sx={authFieldSx(brand)}
             />
 
             <TextField
-              variant="standard"
+              variant="outlined"
               label="Phone"
               fullWidth
               name="phone"
@@ -1187,10 +1317,11 @@ const UsersPage = () => {
                   phone: event.target.value,
                 }))
               }
+              sx={authFieldSx(brand)}
             />
 
             <TextField
-              variant="standard"
+              variant="outlined"
               label="Temporary Password"
               type="password"
               required
@@ -1205,9 +1336,10 @@ const UsersPage = () => {
                 }))
               }
               helperText="Minimum 8 characters"
+              sx={authFieldSx(brand)}
             />
 
-            <FormControl fullWidth variant="standard">
+            <FormControl fullWidth variant="outlined" sx={authSelectSx(brand)}>
               <InputLabel id="employee-role-label">Role *</InputLabel>
               <Select
                 labelId="employee-role-label"
@@ -1216,6 +1348,8 @@ const UsersPage = () => {
                 onChange={(e) =>
                   setEmployeeForm((prev) => ({ ...prev, role: e.target.value }))
                 }
+                sx={authSelectSx(brand)}
+                MenuProps={selectMenuProps}
               >
                 {CREATE_EMPLOYEE_ROLES.map((role) => (
                   <MenuItem key={role} value={role}>
@@ -1240,10 +1374,15 @@ const UsersPage = () => {
             disableElevation
             onClick={handleCreateEmployee}
             sx={{
-              borderRadius: 2,
+              borderRadius: "10px",
               px: 3,
               fontWeight: 600,
               textTransform: "none",
+              color: brand.ctaText,
+              backgroundColor: brand.ctaBg,
+              "&:hover": {
+                backgroundColor: brand.ctaBgHover,
+              },
             }}
           >
             Create Employee
