@@ -40,6 +40,23 @@ const authSlice = createSlice({
       storage.setItem("user", JSON.stringify(user));
     },
 
+    updateUser: (state, action) => {
+      state.user = {
+        ...state.user,
+        ...action.payload,
+      };
+
+      const userStorage =
+        localStorage.getItem("user") !== null
+          ? localStorage
+          : sessionStorage;
+
+      userStorage.setItem(
+        "user",
+        JSON.stringify(state.user),
+      );
+    },
+
     logout: (state) => {
       state.token = null;
       state.user = null;
@@ -68,6 +85,7 @@ const authSlice = createSlice({
 
 export const {
   loginSuccess,
+  updateUser,
   logout,
   clearAuth,
 } = authSlice.actions;

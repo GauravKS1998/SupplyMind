@@ -16,12 +16,11 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import MenuIcon from "@mui/icons-material/Menu";
 
-import { useTheme } from "@mui/material/styles";
-
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { menuItems } from "../../navigation/menuItems";
+import { useAuthTokens, authScrollbarSx } from "../auth/authStyles";
 
 const EXPANDED_WIDTH = 250;
 const COLLAPSED_WIDTH = 80;
@@ -32,8 +31,7 @@ const Sidebar = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
-
-  const theme = useTheme();
+  const brand = useAuthTokens();
 
   const [open, setOpen] = useState(true);
 
@@ -95,8 +93,6 @@ const Sidebar = () => {
           overflowX: "hidden",
           overflowY: "auto",
 
-          transition: "width 0.3s ease",
-
           top: "64px",
           height: "calc(100vh - 64px)",
 
@@ -104,31 +100,10 @@ const Sidebar = () => {
           borderColor: "divider",
 
           backgroundImage: "none",
-
-          scrollbarWidth: "thin",
-
-          scrollbarColor: `
-            ${theme.palette.action.hover}
-            transparent
-          `,
-
-          "&::-webkit-scrollbar": {
-            width: "6px",
-          },
-
-          "&::-webkit-scrollbar-track": {
-            background: "transparent",
-          },
-
-          "&::-webkit-scrollbar-thumb": {
-            backgroundColor: theme.palette.action.hover,
-
-            borderRadius: "10px",
-          },
-
-          "&::-webkit-scrollbar-thumb:hover": {
-            backgroundColor: theme.palette.action.selected,
-          },
+          backgroundColor: brand.pageBg,
+          transition:
+            "background-color 0.2s ease, color 0.2s ease, width 0.3s ease",
+          ...authScrollbarSx(brand),
         },
       }}
     >
@@ -202,11 +177,16 @@ const Sidebar = () => {
                   transition: "all 0.2s ease",
 
                   "&.Mui-selected": {
-                    backgroundColor: "action.selected",
+                    backgroundColor: brand.accentSoft,
+                    color: brand.accent,
+                  },
+
+                  "&.Mui-selected .MuiListItemIcon-root": {
+                    color: brand.accent,
                   },
 
                   "&.Mui-selected:hover": {
-                    backgroundColor: "action.selected",
+                    backgroundColor: brand.accentSoft,
                   },
                 }}
               >
@@ -228,7 +208,7 @@ const Sidebar = () => {
                     slotProps={{
                       primary: {
                         fontSize: "0.95rem",
-                        fontWeight: 500,
+                        fontWeight: isActive(item.path) ? 600 : 500,
                       },
                     }}
                   />
@@ -277,20 +257,26 @@ const Sidebar = () => {
                 mb: 0.5,
 
                 backgroundColor: activeParent
-                  ? "action.selected"
+                  ? brand.accentSoft
                   : "transparent",
 
+                color: activeParent ? brand.accent : "inherit",
+
+                "& .MuiListItemIcon-root": {
+                  color: activeParent ? brand.accent : "inherit",
+                },
+
                 "&:hover": {
-                  backgroundColor: "action.hover",
+                  backgroundColor: activeParent
+                    ? brand.accentSoft
+                    : "action.hover",
                 },
               }}
             >
               <ListItemIcon
                 sx={{
                   minWidth: 0,
-
                   mr: open ? 2 : 0,
-
                   justifyContent: "center",
                 }}
               >
@@ -369,11 +355,16 @@ const Sidebar = () => {
                           mb: 0.25,
 
                           "&.Mui-selected": {
-                            backgroundColor: "action.selected",
+                            backgroundColor: brand.accentSoft,
+                            color: brand.accent,
+                          },
+
+                          "&.Mui-selected .MuiListItemIcon-root": {
+                            color: brand.accent,
                           },
 
                           "&.Mui-selected:hover": {
-                            backgroundColor: "action.selected",
+                            backgroundColor: brand.accentSoft,
                           },
                         }}
                       >

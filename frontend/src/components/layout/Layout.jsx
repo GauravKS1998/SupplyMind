@@ -1,21 +1,24 @@
 import { Box } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
 import { Outlet } from "react-router-dom";
 import { motion } from "framer-motion";
 
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
+import { useAuthTokens, authScrollbarSx } from "../auth/authStyles";
 
 const NAVBAR_HEIGHT = 64;
 
 const Layout = () => {
-  const theme = useTheme();
+  const brand = useAuthTokens();
 
   return (
     <Box
       sx={{
         height: "100vh",
         overflow: "hidden",
+        fontFamily: brand.fontBody,
+        backgroundColor: brand.pageBg,
+        transition: "background-color 0.2s ease, color 0.2s ease",
       }}
     >
       <Navbar />
@@ -35,18 +38,7 @@ const Layout = () => {
             overflowY: "auto",
             height: `calc(100vh - ${NAVBAR_HEIGHT}px)`,
             p: 3,
-
-            scrollbarWidth: "thin",
-            scrollbarColor: `${theme.palette.action.hover} transparent`,
-            "&::-webkit-scrollbar": { width: "6px" },
-            "&::-webkit-scrollbar-track": { background: "transparent" },
-            "&::-webkit-scrollbar-thumb": {
-              backgroundColor: theme.palette.action.hover,
-              borderRadius: "10px",
-            },
-            "&::-webkit-scrollbar-thumb:hover": {
-              backgroundColor: theme.palette.action.selected,
-            },
+            ...authScrollbarSx(brand),
           }}
         >
           <motion.div

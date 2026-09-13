@@ -13,8 +13,6 @@ import {
   ListItemText,
 } from "@mui/material";
 
-import { useTheme } from "@mui/material/styles";
-
 import HubIcon from "@mui/icons-material/Hub";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
@@ -28,10 +26,11 @@ import { useNavigate } from "react-router-dom";
 import { ColorModeContext } from "../../theme/ColorModeContext";
 import { logout } from "../../store/slices/authSlice";
 import { ROLE_LABELS } from "../../constants/userConstants";
+import { useAuthTokens, authScrollbarSx } from "../auth/authStyles";
 
 const Navbar = () => {
   const { mode, toggleTheme } = useContext(ColorModeContext);
-  const theme = useTheme();
+  const brand = useAuthTokens();
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -79,6 +78,7 @@ const Navbar = () => {
           justifyContent: "space-between",
           borderBottom: 1,
           borderColor: "divider",
+          bgcolor: brand.pageBg,
         }}
       >
         {/* Branding */}
@@ -89,13 +89,15 @@ const Navbar = () => {
             gap: 1.2,
           }}
         >
-          <HubIcon sx={{ fontSize: 30 }} />
+          <HubIcon sx={{ fontSize: 30, color: brand.accent }} />
 
           <Typography
             variant="h5"
             sx={{
-              fontWeight: 700,
-              letterSpacing: 1,
+              fontFamily: brand.fontDisplay,
+              fontWeight: 600,
+              letterSpacing: 0.3,
+              color: brand.textPrimary,
             }}
           >
             SupplyMind
@@ -117,8 +119,9 @@ const Navbar = () => {
             aria-label="Toggle theme"
             sx={{
               border: 1,
-              borderColor: "rgba(255, 255, 255, 0.3)",
+              borderColor: "divider",
               borderRadius: 1.5,
+              color: brand.textPrimary,
             }}
           >
             {mode === "dark" ? (
@@ -143,6 +146,9 @@ const Navbar = () => {
                 height: 36,
                 fontSize: "0.85rem",
                 fontWeight: 600,
+                fontFamily: brand.fontDisplay,
+                bgcolor: brand.accent,
+                color: brand.ctaText,
               }}
             >
               {getInitials(user?.full_name)}
@@ -164,22 +170,13 @@ const Navbar = () => {
               sx: {
                 mt: 1.5,
                 minWidth: 280,
-                borderRadius: 2,
+                borderRadius: 4,
                 border: 1,
                 borderColor: "divider",
                 overflow: "hidden",
-
-                scrollbarWidth: "thin",
-                scrollbarColor: `${theme.palette.action.hover} transparent`,
-                "&::-webkit-scrollbar": { width: "6px" },
-                "&::-webkit-scrollbar-track": { background: "transparent" },
-                "&::-webkit-scrollbar-thumb": {
-                  backgroundColor: theme.palette.action.hover,
-                  borderRadius: "10px",
-                },
-                "&::-webkit-scrollbar-thumb:hover": {
-                  backgroundColor: theme.palette.action.selected,
-                },
+                bgcolor: brand.pageBg,
+                transition: "background-color 0.2s ease, color 0.2s ease",
+                ...authScrollbarSx(brand),
               },
             },
           }}
@@ -198,6 +195,8 @@ const Navbar = () => {
                   width: 44,
                   height: 44,
                   fontWeight: 600,
+                  bgcolor: brand.accent,
+                  color: brand.ctaText,
                 }}
               >
                 {getInitials(user?.full_name)}
@@ -238,6 +237,8 @@ const Navbar = () => {
                   borderRadius: 1.5,
                   fontWeight: 600,
                   fontSize: "0.7rem",
+                  borderColor: brand.accent,
+                  color: brand.accent,
                 }}
               />
             )}
