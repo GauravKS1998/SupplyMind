@@ -76,6 +76,11 @@ def find_all_inactive(
     )
 
 
+# -------------------------
+# Pending Verification
+# -------------------------
+
+
 def find_all_pending_verification(
     db: Session,
 ):

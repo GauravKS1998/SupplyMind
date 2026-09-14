@@ -10,13 +10,11 @@ from app.users.enums import UserRole
 from app.database.database import get_db
 
 from .schema import (
-    SupplierCreateRequest,
     SupplierUpdateRequest,
     SupplierSearchRequest,
 )
 
 from .service import (
-    create_supplier,
     update_supplier,
     verify_supplier,
     get_supplier_by_id,
@@ -37,25 +35,6 @@ from .constants import (
 )
 
 router = APIRouter()
-
-
-# -------------------------
-# Create
-# -------------------------
-
-
-@router.post("/")
-def create(
-    request: SupplierCreateRequest,
-    db: Session = Depends(get_db),
-    current_user=Depends(require_roles(UserRole.SUPPLIER)),
-):
-    return create_supplier(
-        db,
-        request,
-        current_user["user_id"],
-    )
-
 
 # -------------------------
 # Search

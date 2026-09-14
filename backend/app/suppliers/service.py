@@ -12,13 +12,11 @@ from app.logging.logger import logger
 from .model import Supplier
 
 from .schema import (
-    SupplierCreateRequest,
     SupplierUpdateRequest,
     SupplierSearchRequest,
 )
 
 from .repository import (
-    save,
     find_by_id,
     find_by_user_id,
     find_by_gst_number,
@@ -152,51 +150,6 @@ def search_suppliers(
 
 
 # -------------------------
-# Create
-# -------------------------
-
-
-def create_supplier(
-    db: Session,
-    request: SupplierCreateRequest,
-    current_user_id: int,
-):
-    existing_user_supplier = find_by_user_id(
-        db,
-        current_user_id,
-    )
-
-    if existing_user_supplier:
-        raise SupplierAlreadyExistsException(
-            "Supplier profile already exists for this user"
-        )
-
-    existing_gst = find_by_gst_number(
-        db,
-        request.gst_number,
-    )
-
-    if existing_gst:
-        raise SupplierAlreadyExistsException(
-            "Supplier with this GST number already exists"
-        )
-
-    supplier = Supplier(user_id=current_user_id, **request.model_dump())
-
-    saved_supplier = save(
-        db,
-        supplier,
-    )
-
-    db.commit()
-    db.refresh(saved_supplier)
-
-    logger.info(f"Supplier {saved_supplier.id} created")
-
-    return map_supplier(saved_supplier)
-
-
-# -------------------------
 # Update
 # -------------------------
 
@@ -220,17 +173,25 @@ def update_supplier(
             "You are not authorized to update this supplier"
         )
 
-    existing_gst = find_by_gst_number(
-        db,
-        request.gst_number,
+    update_data = request.model_dump(
+        exclude_unset=True,
     )
 
-    if existing_gst and existing_gst.id != supplier.id:
-        raise SupplierAlreadyExistsException(
-            "Supplier with this GST number already exists"
-        )
+    if "gst_number" in update_data:
+        gst_number = update_data["gst_number"]
 
-    for key, value in request.model_dump().items():
+        if gst_number:
+            existing_gst = find_by_gst_number(
+                db,
+                gst_number,
+            )
+
+            if existing_gst and existing_gst.id != supplier.id:
+                raise SupplierAlreadyExistsException(
+                    "Supplier with this GST number already exists"
+                )
+
+    for key, value in update_data.items():
         setattr(
             supplier,
             key,

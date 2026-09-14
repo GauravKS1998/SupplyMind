@@ -13,12 +13,17 @@ class Supplier(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
 
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), unique=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id"),
+        unique=True,
+    )
 
     company_name: Mapped[str] = mapped_column(String(255))
 
     gst_number: Mapped[str | None] = mapped_column(
-        String(100), unique=True, nullable=True
+        String(100),
+        unique=True,
+        nullable=True,
     )
 
     contact_person: Mapped[str] = mapped_column(String(255))
@@ -27,46 +32,84 @@ class Supplier(Base):
 
     email: Mapped[str] = mapped_column(String(255))
 
-    address: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    address: Mapped[str | None] = mapped_column(
+        String(500),
+        nullable=True,
+    )
 
-    city: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    city: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+    )
 
-    state: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    state: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+    )
 
-    country: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    country: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+    )
 
-    postal_code: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    postal_code: Mapped[str | None] = mapped_column(
+        String(20),
+        nullable=True,
+    )
 
-    supplier_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    supplier_type: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+    )
 
-    lead_time_days: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    lead_time_days: Mapped[int | None] = mapped_column(
+        Integer,
+        nullable=True,
+    )
 
-    payment_terms: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    payment_terms: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+    )
 
-    rating: Mapped[float] = mapped_column(Float, default=0.0)
+    rating: Mapped[float] = mapped_column(
+        Float,
+        default=0.0,
+    )
 
-    is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_verified: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+    )
 
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    is_active: Mapped[bool] = mapped_column(
+        Boolean,
+        default=True,
+    )
 
     verified_by: Mapped[int | None] = mapped_column(
-        ForeignKey("users.id"), nullable=True
+        ForeignKey("users.id"),
+        nullable=True,
     )
 
     updated_by: Mapped[int | None] = mapped_column(
-        ForeignKey("users.id"), nullable=True
+        ForeignKey("users.id"),
+        nullable=True,
     )
 
     deactivated_by: Mapped[int | None] = mapped_column(
-        ForeignKey("users.id"), nullable=True
+        ForeignKey("users.id"),
+        nullable=True,
     )
 
     reactivated_by: Mapped[int | None] = mapped_column(
-        ForeignKey("users.id"), nullable=True
+        ForeignKey("users.id"),
+        nullable=True,
     )
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
     )
 
     updated_at: Mapped[datetime] = mapped_column(
